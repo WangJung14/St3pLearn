@@ -19,18 +19,19 @@ public class ApiResponse<T> {
     private T data;
 
     // Return message "Success" and data
-    public static <T> ApiResponse<T> success(T data) {
+    public static <T> ApiResponse<T> success(int code, T data) {
         return ApiResponse.<T>builder()
-                .code(200)
+                .code(code)
                 .message("Success")
                 .data(data)
                 .build();
     }
     // Return message
-    public static <T> ApiResponse<T> success(int code , String message) {
+    public static <T> ApiResponse<T> success(int code, String message, T data) {
         return ApiResponse.<T>builder()
-                .code(200)
+                .code(code)
                 .message(message)
+                .data(data)
                 .build();
     }
 
