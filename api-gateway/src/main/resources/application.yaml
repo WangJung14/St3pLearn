@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true # Bật tính năng tự tìm đường qua Eureka
+          lower-case-service-id: true
+      routes:
+        # Luật định tuyến cho Identity Service
+        - id: identity-service-route
+          uri: lb://identity-service # lb = Load Balancer (Tự động cân bằng tải)
+          predicates:
+            - Path=/api/auth/**, /api/users/** # Nhận diện Request qua đường dẫn này
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
