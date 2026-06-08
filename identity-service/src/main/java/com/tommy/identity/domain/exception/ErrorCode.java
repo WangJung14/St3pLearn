@@ -14,7 +14,11 @@ public enum ErrorCode {
     EMAIL_EXISTED(409, HttpStatus.CONFLICT, "This email address is already registered"),
     USER_NOT_FOUND(404, HttpStatus.NOT_FOUND, "User not found"),
     UNAUTHENTICATED(401, HttpStatus.UNAUTHORIZED, "Authentication required or token has expired"),
-    ROLE_NOT_FOUND(500, HttpStatus.INTERNAL_SERVER_ERROR, "System error: configured role not found");
+    ROLE_NOT_FOUND(500, HttpStatus.INTERNAL_SERVER_ERROR, "System error: configured role not found"),
+
+    //login
+    INVALID_CREDENTIALS(401, HttpStatus.UNAUTHORIZED, "Email or Password is invalid"),
+    ACCOUNT_LOCKED(403, HttpStatus.FORBIDDEN, "Account is locked"),;
 
     private final int code;
     private final HttpStatus httpStatus;

@@ -1,16 +1,14 @@
 package com.tommy.identity.application.service.serviceimpl;
 
 import com.tommy.identity.application.dto.AuthResponse;
+import com.tommy.identity.application.dto.LoginRequest;
 import com.tommy.identity.application.dto.RegisterRequest;
 import com.tommy.identity.application.service.IAuthService;
 import com.tommy.identity.domain.entity.*;
 import com.tommy.identity.domain.enums.AccountStatus;
 import com.tommy.identity.domain.exception.AppException;
 import com.tommy.identity.domain.exception.ErrorCode;
-import com.tommy.identity.infrastructure.persistence.repository.AccountRepository;
-import com.tommy.identity.infrastructure.persistence.repository.RefreshTokenRepository;
-import com.tommy.identity.infrastructure.persistence.repository.RoleRepository;
-import com.tommy.identity.infrastructure.persistence.repository.UserSecurityLogRepository;
+import com.tommy.identity.infrastructure.persistence.repository.*;
 import com.tommy.identity.infrastructure.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,9 +30,15 @@ public class AuthService implements IAuthService {
     private final RoleRepository roleRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserSecurityLogRepository securityLogRepository;
+    private final LoginHistoryRepository loginHistoryRepository;
+
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
+
+    /*
+    * Register account function
+    * */
     @Override
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -104,6 +108,65 @@ public class AuthService implements IAuthService {
                 .userId(savedAccount.getId())
                 .username(savedAccount.getUsername())
                 .email(savedAccount.getEmail())
+                .build();
+    }
+
+
+    /*
+    * Login account Function
+    * */
+
+    @Override
+    @Transactional
+    public AuthResponse login(LoginRequest request) {
+        // 1. Find account by email
+        Account account = accountRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
+        // 2. Check password
+        boolean isPasswordValid = passwordEncoder.matches(request.getPassword(), account.getPasswordHash());
+        if(!isPasswordValid) {
+            // future develop : If the user enters incorrect information 5 times, they will not be allowed to enter more
+            throw new AppException(ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        // 3. Check account status
+        if(account.getStatus() == AccountStatus.SUSPENDED || account.getStatus() == AccountStatus.LOCKED) {
+            throw new AppException(ErrorCode.ACCOUNT_LOCKED);
+        }
+
+        // 4. Generate token
+        String accessToken = jwtTokenProvider.generateAccessToken(account.getId(), account.getUsername());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(account.getId(), account.getUsername());
+
+        // 5. Save Refresh Token to database
+        RefreshToken refreshTokenEntity = RefreshToken.builder()
+                .userId(account.getId())
+                .tokenHash(passwordEncoder.encode(refreshToken))
+                .expiresAt(LocalDateTime.now().plusDays(7))
+                .ipAddress("127.0.0.1") // Hardcode, IP address will get from HttpServletRequest
+                .deviceInfo("Postman/Browser")
+                .build();
+        refreshTokenRepository.save(refreshTokenEntity);
+
+        // 6. Update last login and write login log
+        account.setLastLoginAt(LocalDateTime.now());
+        accountRepository.save(account);
+
+        LoginHistory loginHistory = LoginHistory.builder()
+                .userId(account.getId())
+                .loginAt(LocalDateTime.now())
+                .ipAddress("127.0.0.1")
+                .deviceInfo("Postman/Browser")
+                .success(true)
+                .build();
+        loginHistoryRepository.save(loginHistory);
+
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .userId(account.getId())
+                .username(account.getUsername())
+                .email(account.getEmail())
                 .build();
     }
 }
