@@ -1,9 +1,6 @@
 package com.tommy.identity.presentation.controller;
 
-import com.tommy.identity.application.dto.AuthResponse;
-import com.tommy.identity.application.dto.LoginRequest;
-import com.tommy.identity.application.dto.RefreshTokenRequest;
-import com.tommy.identity.application.dto.RegisterRequest;
+import com.tommy.identity.application.dto.*;
 import com.tommy.identity.application.service.IAuthService;
 import com.tommy.identity.presentation.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -54,7 +51,15 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200,"Refresh successful", authResponse));
-
     }
 
+    // Logout
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody LogoutRequest request) {
+        authService.logout(request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "Logout successful", null));
+    }
 }

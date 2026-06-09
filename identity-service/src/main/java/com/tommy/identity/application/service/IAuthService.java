@@ -1,9 +1,6 @@
 package com.tommy.identity.application.service;
 
-import com.tommy.identity.application.dto.AuthResponse;
-import com.tommy.identity.application.dto.LoginRequest;
-import com.tommy.identity.application.dto.RefreshTokenRequest;
-import com.tommy.identity.application.dto.RegisterRequest;
+import com.tommy.identity.application.dto.*;
 
 public interface IAuthService {
 
@@ -19,4 +16,9 @@ public interface IAuthService {
     * Reissue access token base on refresh token
     * */
     AuthResponse refreshToken(RefreshTokenRequest request);
+
+    /**
+     *Logout Account
+     * */
+    void logout(LogoutRequest request);
 }

@@ -1,9 +1,6 @@
 package com.tommy.identity.application.service.serviceimpl;
 
-import com.tommy.identity.application.dto.AuthResponse;
-import com.tommy.identity.application.dto.LoginRequest;
-import com.tommy.identity.application.dto.RefreshTokenRequest;
-import com.tommy.identity.application.dto.RegisterRequest;
+import com.tommy.identity.application.dto.*;
 import com.tommy.identity.application.service.IAuthService;
 import com.tommy.identity.domain.entity.*;
 import com.tommy.identity.domain.enums.AccountStatus;
@@ -242,5 +239,49 @@ public class AuthService implements IAuthService {
                 .username(account.getUsername())
                 .email(account.getEmail())
                 .build();
+    }
+
+
+    /*
+    * Logout account
+    * */
+
+    @Override
+    @Transactional
+    public void logout(LogoutRequest request){
+
+        String rawRefreshToken = request.getRefreshToken();
+
+        // 1.If token is not valid , do nothing
+
+        boolean isValidToken = jwtTokenProvider.isTokenValid(rawRefreshToken);
+        if(!isValidToken) return;
+
+        // 2. Extract user id from token
+        UUID userId = jwtTokenProvider.extractUserId(rawRefreshToken);
+
+        // 3. Find active tokens of user
+        List<RefreshToken> activeTokens = refreshTokenRepository.findAllByUserIdAndRevokedAtIsNull(userId);
+
+        //4. Compare token that are being request to check which one is from database
+        activeTokens.stream()
+                .filter(token -> passwordEncoder.matches(rawRefreshToken, token.getTokenHash()))
+                .findFirst()
+                .ifPresent(matchedToken -> {
+                    // 5. Remove token
+                    matchedToken.setRevokedAt(LocalDateTime.now());
+                    refreshTokenRepository.save(matchedToken);
+
+                    // 6. Save audit log
+                    UserSecurityLog securityLog = UserSecurityLog.builder()
+                            .userId(userId)
+                            .eventType("USER_LOGGED_OUT")
+                            .metadata(Map.of("action", "User logout login session"))
+                            .build();
+                    securityLogRepository.save(securityLog);
+
+                    log.info("User {} successfully logged out", userId);
+                });
+
     }
 }
