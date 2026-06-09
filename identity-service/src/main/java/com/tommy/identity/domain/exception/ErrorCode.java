@@ -18,7 +18,12 @@ public enum ErrorCode {
 
     //login
     INVALID_CREDENTIALS(401, HttpStatus.UNAUTHORIZED, "Email or Password is invalid"),
-    ACCOUNT_LOCKED(403, HttpStatus.FORBIDDEN, "Account is locked"),;
+    ACCOUNT_LOCKED(403, HttpStatus.FORBIDDEN, "Account is locked"),
+    // Refresh Token
+    INVALID_TOKEN(401, HttpStatus.UNAUTHORIZED, "Token không hợp lệ hoặc đã hết hạn")
+
+    ;
+
 
     private final int code;
     private final HttpStatus httpStatus;

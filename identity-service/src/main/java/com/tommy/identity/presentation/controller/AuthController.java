@@ -2,9 +2,9 @@ package com.tommy.identity.presentation.controller;
 
 import com.tommy.identity.application.dto.AuthResponse;
 import com.tommy.identity.application.dto.LoginRequest;
+import com.tommy.identity.application.dto.RefreshTokenRequest;
 import com.tommy.identity.application.dto.RegisterRequest;
 import com.tommy.identity.application.service.IAuthService;
-import com.tommy.identity.domain.entity.UserSecurityLog;
 import com.tommy.identity.presentation.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +23,7 @@ public class AuthController {
     //DI injection
     private final IAuthService authService;
 
+    // Register Account
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
 
@@ -34,6 +35,7 @@ public class AuthController {
                 .body(ApiResponse.success(201, authResponse));
     }
 
+    // Login Account
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
 
@@ -42,6 +44,17 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200,"Login successful", authResponse));
+    }
+
+    // Refresh Token
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        AuthResponse authResponse = authService.refreshToken(request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200,"Refresh successful", authResponse));
+
     }
 
 }

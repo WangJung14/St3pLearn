@@ -2,6 +2,7 @@ package com.tommy.identity.application.service.serviceimpl;
 
 import com.tommy.identity.application.dto.AuthResponse;
 import com.tommy.identity.application.dto.LoginRequest;
+import com.tommy.identity.application.dto.RefreshTokenRequest;
 import com.tommy.identity.application.dto.RegisterRequest;
 import com.tommy.identity.application.service.IAuthService;
 import com.tommy.identity.domain.entity.*;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -39,6 +41,7 @@ public class AuthService implements IAuthService {
     /*
     * Register account function
     * */
+
     @Override
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -164,6 +167,77 @@ public class AuthService implements IAuthService {
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .userId(account.getId())
+                .username(account.getUsername())
+                .email(account.getEmail())
+                .build();
+    }
+
+    /*
+    * Refresh Token
+    * */
+
+    @Override
+    @Transactional
+    public AuthResponse refreshToken(RefreshTokenRequest request){
+
+        String rawRefreshToken = request.getRefreshToken();
+
+        // 1. Check is valid and expiration date JWT
+        boolean isValidToken = jwtTokenProvider.isTokenValid(rawRefreshToken);
+        if(!isValidToken) {
+            throw new AppException(ErrorCode.INVALID_TOKEN);
+        }
+
+        // 2. Extract userId from Token
+        UUID userId = jwtTokenProvider.extractUserId(rawRefreshToken);
+
+        // 3. Get user information for verify if user is valid and not locked out
+        Account account = accountRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        if(account.getStatus() == AccountStatus.SUSPENDED || account.getStatus() == AccountStatus.LOCKED) {
+            throw new AppException(ErrorCode.ACCOUNT_LOCKED);
+        }
+
+        // 4. Find All refresh Token is active
+        List<RefreshToken> activeTokens = refreshTokenRepository.findAllByUserIdAndRevokedAtIsNull(userId);
+
+        // 5. BCrypt Matching check if user submitted rawRefreshToken matches any existing entries in database
+
+        RefreshToken matchedToken = activeTokens.stream()
+                .filter(token -> passwordEncoder.matches(rawRefreshToken, token.getTokenHash()))
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_TOKEN));
+        // 6. Revoked old token
+        matchedToken.setRevokedAt(LocalDateTime.now());
+        refreshTokenRepository.save(matchedToken);
+
+        //7. Generate new token
+        String newAccessToken = jwtTokenProvider.generateAccessToken(account.getId(), account.getUsername());
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(account.getId(), account.getUsername());
+
+        //8. Save refresh token to database
+        RefreshToken newRefreshTokenEntity = RefreshToken.builder()
+                .userId(account.getId())
+                .tokenHash(passwordEncoder.encode(newRefreshToken))
+                .expiresAt(LocalDateTime.now().plusDays(7))
+                .ipAddress("127.0.0.1")
+                .deviceInfo("Linux Ubuntu")
+                .build();
+        refreshTokenRepository.save(newRefreshTokenEntity);
+
+        // 9. Save audit log
+        UserSecurityLog securityLog = UserSecurityLog.builder()
+                .userId(account.getId())
+                .eventType("TOKEN_REFRESHED")
+                .metadata(Map.of("action", "User refresh login session"))
+                .build();
+        securityLogRepository.save(securityLog);
+
+        return AuthResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
                 .userId(account.getId())
                 .username(account.getUsername())
                 .email(account.getEmail())

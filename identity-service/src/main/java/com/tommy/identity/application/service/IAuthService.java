@@ -2,6 +2,7 @@ package com.tommy.identity.application.service;
 
 import com.tommy.identity.application.dto.AuthResponse;
 import com.tommy.identity.application.dto.LoginRequest;
+import com.tommy.identity.application.dto.RefreshTokenRequest;
 import com.tommy.identity.application.dto.RegisterRequest;
 
 public interface IAuthService {
@@ -12,6 +13,10 @@ public interface IAuthService {
      * @return Thông báo trạng thái đăng ký
      */
     AuthResponse register(RegisterRequest request);
-    AuthResponse login(LoginRequest request);
 
+    AuthResponse login(LoginRequest request);
+    /**
+    * Reissue access token base on refresh token
+    * */
+    AuthResponse refreshToken(RefreshTokenRequest request);
 }
