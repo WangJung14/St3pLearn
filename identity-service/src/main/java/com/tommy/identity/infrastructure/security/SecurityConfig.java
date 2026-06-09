@@ -28,7 +28,12 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // khong dung session
                 .authorizeHttpRequests(auth -> auth
                         // Accept request for all api start with /api/auth/
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
                         // Another API (later) must have invalid token
                         .anyRequest().authenticated()
                 );
