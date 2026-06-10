@@ -30,9 +30,10 @@ public class Account {
     @Column(unique = true,nullable = false,length = 100)
     private String username;
 
-    @Column(name = "passsword_hash",nullable = false,length = 500)
+    @Column(name = "password_hash",nullable = false,length = 500)
     private String passwordHash;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false,length = 20)
     private AccountStatus status =  AccountStatus.UNVERIFIED;
@@ -46,6 +47,7 @@ public class Account {
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private UserMfaSetting mfaSetting;
 
+    @Builder.Default
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",

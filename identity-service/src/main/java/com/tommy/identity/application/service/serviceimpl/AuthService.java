@@ -75,6 +75,7 @@ public class AuthService implements IAuthService {
                 .fullName(request.getFullName() != null ? request.getFullName() : request.getUsername())
                 .build();
 
+        account.setProfile(userProfile);
         // 6. Save database
         Account savedAccount = accountRepository.save(account);
         log.info("Successfully registered new user: {}", savedAccount.getUsername());
