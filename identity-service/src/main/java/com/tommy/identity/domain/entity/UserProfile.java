@@ -49,6 +49,9 @@ public class UserProfile {
     @Column(name = "birth_date")
     private LocalDate birthDate;
 
+    @Column(name = "public_id",unique = true,nullable = false   ,length = 20)
+    private String publicId;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

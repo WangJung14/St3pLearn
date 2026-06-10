@@ -73,6 +73,7 @@ public class AuthService implements IAuthService {
         UserProfile userProfile = UserProfile.builder()
                 .account(account)
                 .fullName(request.getFullName() != null ? request.getFullName() : request.getUsername())
+                .publicId(UUID.randomUUID().toString().replace("-","").substring(0, 10))
                 .build();
 
         account.setProfile(userProfile);
