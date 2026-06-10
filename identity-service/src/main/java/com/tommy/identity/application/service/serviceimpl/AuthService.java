@@ -127,6 +127,16 @@ public class AuthService implements IAuthService {
         // 1. Find account by email
         Account account = accountRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
+
+        // Check user account status before comparing password and gen token
+        if (account.getStatus() == AccountStatus.DELETED ||
+                account.getStatus() == AccountStatus.LOCKED ||
+                account.getStatus() == AccountStatus.SUSPENDED) {
+
+            log.warn("Login failed: Account {} is deactivated or locked.", account.getEmail());
+            throw new AppException(ErrorCode.ACCOUNT_LOCKED);
+        }
+
         // 2. Check password
         boolean isPasswordValid = passwordEncoder.matches(request.getPassword(), account.getPasswordHash());
         if(!isPasswordValid) {

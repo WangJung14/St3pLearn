@@ -18,7 +18,7 @@ public enum ErrorCode {
 
     //login
     INVALID_CREDENTIALS(401, HttpStatus.UNAUTHORIZED, "Email or Password is invalid"),
-    ACCOUNT_LOCKED(403, HttpStatus.FORBIDDEN, "Account is locked"),
+    ACCOUNT_LOCKED(403, HttpStatus.FORBIDDEN, "Account is locked or deactivated"),
     // Refresh Token
     INVALID_TOKEN(401, HttpStatus.UNAUTHORIZED, "Token is invalid or expired"),
 

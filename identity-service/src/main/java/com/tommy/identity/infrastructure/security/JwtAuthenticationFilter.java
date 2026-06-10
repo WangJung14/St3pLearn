@@ -1,5 +1,8 @@
 package com.tommy.identity.infrastructure.security;
 
+import com.tommy.identity.domain.entity.Account;
+import com.tommy.identity.domain.enums.AccountStatus;
+import com.tommy.identity.infrastructure.persistence.repository.AccountRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +25,7 @@ import java.util.UUID;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final AccountRepository accountRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -48,6 +52,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             boolean isNotAuthentication = SecurityContextHolder.getContext().getAuthentication() == null;
             if(isTokenValid && isNotAuthentication){
                 userId = jwtTokenProvider.extractUserId(jwt);
+
+                Account account = accountRepository.findById(userId).orElse(null);
+
+                // If user not existed, block!
+                if (account == null ||
+                        account.getStatus() == AccountStatus.DELETED ||
+                        account.getStatus() == AccountStatus.LOCKED ||
+                        account.getStatus() == AccountStatus.SUSPENDED)
+                {
+                    log.warn("Block access: Account {} is in the state {}", userId, account != null ? account.getStatus() : "NOT EXISTED!");
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write(
+                            "{\"code\": 401, \"message\": \"Your account has been disabled or blocked. Please contact ADMIN !!!\"}"
+                    );
+                    return;
+                }
 
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userId, // Định danh User ID
