@@ -1,6 +1,7 @@
 package com.tommy.identity.application.service.serviceimpl;
-import com.tommy.identity.application.dto.PublicProfileResponse;
-import com.tommy.identity.application.dto.UserProfileResponse;
+import com.tommy.identity.application.dto.request.UpdateProfileRequest;
+import com.tommy.identity.application.dto.response.PublicProfileResponse;
+import com.tommy.identity.application.dto.response.UserProfileResponse;
 import com.tommy.identity.application.service.IUserService;
 import com.tommy.identity.domain.entity.Account;
 import com.tommy.identity.domain.entity.UserProfile;
@@ -66,6 +67,61 @@ public class UserService implements IUserService {
                 .avatarUrl(profile.getAvatarUrl())
                 .bio(profile.getBio())
                 .country(profile.getCountry())
+                .build();
+    }
+
+    /*
+    * Update my profile
+    * */
+    @Override
+    @Transactional
+    public UserProfileResponse updateMyProfile(UUID userId, UpdateProfileRequest request) {
+        // 1. Find account by Id
+        Account account = accountRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        // 2. Get profile for update
+        // Create new profile if user doesn't have profile
+        UserProfile profile = account.getProfile();
+        if (profile == null) {
+            profile = UserProfile.builder().account(account).build();
+            account.setProfile(profile);
+        }
+
+        // 3. Update new data from request to entity
+        if (request.getFullName() != null) profile.setFullName(request.getFullName());
+        if (request.getAvatarUrl() != null) profile.setAvatarUrl(request.getAvatarUrl());
+        if (request.getBio() != null) profile.setBio(request.getBio());
+        if (request.getCountry() != null) profile.setCountry(request.getCountry());
+        if (request.getTimezone() != null) profile.setTimezone(request.getTimezone());
+        if (request.getBirthDate() != null) profile.setBirthDate(request.getBirthDate());
+
+        // 4. Safe Enum data type casting for English level
+        if (request.getEnglishLevel() != null && !request.getEnglishLevel().isBlank()) {
+            try {
+                profile.setEnglishLevel(com.tommy.identity.domain.enums.EnglishLevel.valueOf(request.getEnglishLevel().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                throw new AppException(ErrorCode.INVALID_ROLE);
+            }
+        }
+
+        // 5. Save update to database
+        Account savedAccount = accountRepository.save(account);
+        log.info("Successfully updated profile for user: {}", savedAccount.getUsername());
+
+        // 6. Return new user profile
+        UserProfile updatedProfile = savedAccount.getProfile();
+        return UserProfileResponse.builder()
+                .userId(savedAccount.getId())
+                .username(savedAccount.getUsername())
+                .email(savedAccount.getEmail())
+                .fullName(updatedProfile.getFullName())
+                .avatarUrl(updatedProfile.getAvatarUrl())
+                .bio(updatedProfile.getBio())
+                .country(updatedProfile.getCountry())
+                .timezone(updatedProfile.getTimezone())
+                .englishLevel(updatedProfile.getEnglishLevel() != null ? updatedProfile.getEnglishLevel().name() : null)
+                .birthDate(updatedProfile.getBirthDate())
                 .build();
     }
 }

@@ -20,8 +20,10 @@ public enum ErrorCode {
     INVALID_CREDENTIALS(401, HttpStatus.UNAUTHORIZED, "Email or Password is invalid"),
     ACCOUNT_LOCKED(403, HttpStatus.FORBIDDEN, "Account is locked"),
     // Refresh Token
-    INVALID_TOKEN(401, HttpStatus.UNAUTHORIZED, "Token không hợp lệ hoặc đã hết hạn")
+    INVALID_TOKEN(401, HttpStatus.UNAUTHORIZED, "Token is invalid or expired"),
 
+    //Update Profile
+    INVALID_ROLE(401, HttpStatus.UNAUTHORIZED, "Role is invalid"),
     ;
 
 

@@ -1,6 +1,10 @@
 package com.tommy.identity.presentation.controller;
 
-import com.tommy.identity.application.dto.*;
+import com.tommy.identity.application.dto.request.LoginRequest;
+import com.tommy.identity.application.dto.request.LogoutRequest;
+import com.tommy.identity.application.dto.request.RefreshTokenRequest;
+import com.tommy.identity.application.dto.request.RegisterRequest;
+import com.tommy.identity.application.dto.response.AuthResponse;
 import com.tommy.identity.application.service.IAuthService;
 import com.tommy.identity.presentation.response.ApiResponse;
 import jakarta.validation.Valid;

@@ -1,6 +1,10 @@
 package com.tommy.identity.application.service.serviceimpl;
 
-import com.tommy.identity.application.dto.*;
+import com.tommy.identity.application.dto.request.LoginRequest;
+import com.tommy.identity.application.dto.request.LogoutRequest;
+import com.tommy.identity.application.dto.request.RefreshTokenRequest;
+import com.tommy.identity.application.dto.request.RegisterRequest;
+import com.tommy.identity.application.dto.response.AuthResponse;
 import com.tommy.identity.application.service.IAuthService;
 import com.tommy.identity.domain.entity.*;
 import com.tommy.identity.domain.enums.AccountStatus;
@@ -10,7 +14,6 @@ import com.tommy.identity.infrastructure.persistence.repository.*;
 import com.tommy.identity.infrastructure.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.config.authentication.UserServiceBeanDefinitionParser;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,7 +1,8 @@
 package com.tommy.identity.application.service;
 
-import com.tommy.identity.application.dto.PublicProfileResponse;
-import com.tommy.identity.application.dto.UserProfileResponse;
+import com.tommy.identity.application.dto.request.UpdateProfileRequest;
+import com.tommy.identity.application.dto.response.PublicProfileResponse;
+import com.tommy.identity.application.dto.response.UserProfileResponse;
 
 import java.util.UUID;
 
@@ -17,5 +18,10 @@ public interface IUserService {
      * Tìm user profile thông qua PublicId
      */
     PublicProfileResponse getPublicProfile(String publicId);
+
+    /**
+     * Cập nhật thông tin hồ sơ cá nhân user đang login
+     * */
+    UserProfileResponse updateMyProfile(UUID userId, UpdateProfileRequest request);
 
 }

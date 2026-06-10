@@ -1,17 +1,15 @@
 package com.tommy.identity.presentation.controller;
 
-import com.tommy.identity.application.dto.PublicProfileResponse;
-import com.tommy.identity.application.dto.UserProfileResponse;
+import com.tommy.identity.application.dto.request.UpdateProfileRequest;
+import com.tommy.identity.application.dto.response.PublicProfileResponse;
+import com.tommy.identity.application.dto.response.UserProfileResponse;
 import com.tommy.identity.application.service.IUserService;
 import com.tommy.identity.presentation.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -45,5 +43,21 @@ public class UserController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200,publicProfile));
+    }
+
+    // Update user profile
+    @PostMapping("/me")
+    public ResponseEntity<ApiResponse<UserProfileResponse>> updateMyProfile(
+            @jakarta.validation.Valid @RequestBody UpdateProfileRequest request) {
+
+        // Get id by Security context
+        String userIdStr = SecurityContextHolder.getContext().getAuthentication().getName();
+        UUID userId = UUID.fromString(userIdStr);
+
+        UserProfileResponse updatedProfile = userService.updateMyProfile(userId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200,"Update profile successfully",updatedProfile));
     }
 }

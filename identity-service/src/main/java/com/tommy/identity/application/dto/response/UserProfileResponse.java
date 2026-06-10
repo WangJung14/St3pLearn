@@ -1,4 +1,4 @@
-package com.tommy.identity.application.dto;
+package com.tommy.identity.application.dto.response;
 
 
 import lombok.*;
