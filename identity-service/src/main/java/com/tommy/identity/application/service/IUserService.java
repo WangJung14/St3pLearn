@@ -24,4 +24,9 @@ public interface IUserService {
      * */
     UserProfileResponse updateMyProfile(UUID userId, UpdateProfileRequest request);
 
+    /**
+     * Vô hiệu hóa tài khoản và thu hồi phiên đăng nhập
+     * */
+    void deactivateMyAccount(UUID userId);
+
 }

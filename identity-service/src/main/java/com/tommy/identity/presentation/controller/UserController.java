@@ -60,4 +60,19 @@ public class UserController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200,"Update profile successfully",updatedProfile));
     }
+
+    // Deactivate user account
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponse<Void>> deactivateMyAccount() {
+
+        // Get id by security context
+        String userIdStr = SecurityContextHolder.getContext().getAuthentication().getName();
+        UUID userId = UUID.fromString(userIdStr);
+
+        userService.deactivateMyAccount(userId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200,"Deactivated account successfully",null));
+    }
 }

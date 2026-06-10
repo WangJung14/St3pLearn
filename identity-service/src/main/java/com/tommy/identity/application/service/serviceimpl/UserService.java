@@ -4,16 +4,24 @@ import com.tommy.identity.application.dto.response.PublicProfileResponse;
 import com.tommy.identity.application.dto.response.UserProfileResponse;
 import com.tommy.identity.application.service.IUserService;
 import com.tommy.identity.domain.entity.Account;
+import com.tommy.identity.domain.entity.RefreshToken;
 import com.tommy.identity.domain.entity.UserProfile;
+import com.tommy.identity.domain.entity.UserSecurityLog;
+import com.tommy.identity.domain.enums.AccountStatus;
 import com.tommy.identity.domain.exception.AppException;
 import com.tommy.identity.domain.exception.ErrorCode;
 import com.tommy.identity.infrastructure.persistence.repository.AccountRepository;
+import com.tommy.identity.infrastructure.persistence.repository.RefreshTokenRepository;
 import com.tommy.identity.infrastructure.persistence.repository.UserProfileRepository;
+import com.tommy.identity.infrastructure.persistence.repository.UserSecurityLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -22,6 +30,8 @@ import java.util.UUID;
 public class UserService implements IUserService {
     private final AccountRepository accountRepository;
     private final UserProfileRepository userProfileRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final UserSecurityLogRepository  securityLogRepository;
 
     /*
     * Get my profile
@@ -123,5 +133,38 @@ public class UserService implements IUserService {
                 .englishLevel(updatedProfile.getEnglishLevel() != null ? updatedProfile.getEnglishLevel().name() : null)
                 .birthDate(updatedProfile.getBirthDate())
                 .build();
+    }
+
+    /*
+    * Deactive user account
+    * */
+
+    @Override
+    @Transactional
+    public void deactivateMyAccount(UUID userId) {
+        // 1. Find user account by id
+        Account account = accountRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        // 2. Change status to soft DELETED. It won't be deleted in database
+        account.setStatus(AccountStatus.DELETED);
+        accountRepository.save(account);
+
+        // 3. Revoke all active Refresh token
+        List<RefreshToken> activeTokens = refreshTokenRepository.findAllByUserIdAndRevokedAtIsNull(userId);
+        if (!activeTokens.isEmpty()) {
+            activeTokens.forEach(token -> token.setRevokedAt(LocalDateTime.now()));
+            refreshTokenRepository.saveAll(activeTokens);
+        }
+
+        // 4. Save audit log
+        UserSecurityLog securityLog = UserSecurityLog.builder()
+                .userId(account.getId())
+                .eventType("ACCOUNT_DEACTIVATED")
+                .metadata(Map.of("action", "Users voluntarily request account deletion/deactivation"))
+                .build();
+        securityLogRepository.save(securityLog);
+
+        log.info("User {} has successfully deactivated their account.", account.getUsername());
     }
 }
