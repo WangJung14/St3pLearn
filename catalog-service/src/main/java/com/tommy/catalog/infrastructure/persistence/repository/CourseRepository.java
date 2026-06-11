@@ -1,9 +1,12 @@
 package com.tommy.catalog.infrastructure.persistence.repository;
 
-import com.tommy.catalog.infrastructure.persistence.entity.SampleJpaEntity;
+import com.tommy.catalog.domain.entity.Course;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
+
 @Repository
-public interface SampleJpaRepository extends JpaRepository<SampleJpaEntity, Long> {
+public interface CourseRepository extends JpaRepository<Course, UUID> {
+    boolean existsBySlug(String slug);
 }

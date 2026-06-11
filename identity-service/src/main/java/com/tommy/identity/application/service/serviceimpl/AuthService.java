@@ -85,7 +85,7 @@ public class AuthService implements IAuthService {
         log.info("Successfully registered new user: {}", savedAccount.getUsername());
 
         // 7. Generate token
-        String accessToken = jwtTokenProvider.generateAccessToken(savedAccount.getId(), savedAccount.getUsername());
+        String accessToken = jwtTokenProvider.generateAccessToken(savedAccount.getId(), savedAccount.getUsername(), savedAccount.getRoles());
         String refreshToken = jwtTokenProvider.generateRefreshToken(savedAccount.getId(), savedAccount.getUsername());
 
         // 8. Save hash refresh-token  to database
@@ -150,7 +150,7 @@ public class AuthService implements IAuthService {
         }
 
         // 4. Generate token
-        String accessToken = jwtTokenProvider.generateAccessToken(account.getId(), account.getUsername());
+        String accessToken = jwtTokenProvider.generateAccessToken(account.getId(), account.getUsername(), account.getRoles());
         String refreshToken = jwtTokenProvider.generateRefreshToken(account.getId(), account.getUsername());
 
         // 5. Save Refresh Token to database
@@ -226,7 +226,7 @@ public class AuthService implements IAuthService {
         refreshTokenRepository.save(matchedToken);
 
         //7. Generate new token
-        String newAccessToken = jwtTokenProvider.generateAccessToken(account.getId(), account.getUsername());
+        String newAccessToken = jwtTokenProvider.generateAccessToken(account.getId(), account.getUsername(), account.getRoles());
         String newRefreshToken = jwtTokenProvider.generateRefreshToken(account.getId(), account.getUsername());
 
         //8. Save refresh token to database

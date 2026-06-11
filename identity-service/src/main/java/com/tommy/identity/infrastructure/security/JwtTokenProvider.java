@@ -8,10 +8,12 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.tommy.identity.domain.entity.Role;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -26,8 +28,19 @@ public class JwtTokenProvider {
     private long refreshExpiration;
 
     // Generate Access Token
-    public String generateAccessToken(UUID userId, String username) {
-        return buildToken(new HashMap<>(), userId, username, jwtExpiration);
+    public String generateAccessToken(UUID userId, String username, Set<Role> roles) {
+        Map<String, Object> extraClaims = new HashMap<>();
+        if (roles != null && !roles.isEmpty()) {
+            String roleName = roles.stream()
+                    .map(Role::getName)
+                    .filter(name -> "ADMIN".equalsIgnoreCase(name) || "TEACHER".equalsIgnoreCase(name))
+                    .findFirst()
+                    .orElse(roles.iterator().next().getName());
+            extraClaims.put("role", roleName);
+        } else {
+            extraClaims.put("role", "STUDENT");
+        }
+        return buildToken(extraClaims, userId, username, jwtExpiration);
     }
 
     // Generate Refresh Token

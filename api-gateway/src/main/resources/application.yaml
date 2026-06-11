@@ -17,9 +17,18 @@ spring:
           predicates:
             - Path=/api/auth/**, /api/users/** # Nhận diện Request qua đường dẫn này
 
+        # THÊM MỚI: Luật định tuyến cho Catalog Service
+        - id: catalog-service-route
+          uri: lb://catalog-service
+          predicates:
+            - Path=/api/catalog/**, /api/courses/**, /api/categories/**
+
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
   instance:
     prefer-ip-address: true
+
+jwt:
+  secret: VGhpc0lzQVN0cm9uZ0pXVFNlY3JldEtleUZvckhTMjU2MjAyNg==

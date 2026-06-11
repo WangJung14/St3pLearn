@@ -7,7 +7,7 @@ spring:
 
   # --- CẤU HÌNH KẾT NỐI POSTGRESQL ---
   datasource:
-    url: jdbc:postgresql://localhost:5432/st3plearn
+    url: jdbc:postgresql://localhost:5432/identity_db
     username: admin
     password: admin123
     driver-class-name: org.postgresql.Driver
