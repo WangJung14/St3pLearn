@@ -79,11 +79,11 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!--Swagger-->
+        <!-- Shared Common Library -->
         <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.5.0</version>
+            <groupId>com.tommy</groupId>
+            <artifactId>common-library</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
