@@ -1,15 +1,18 @@
 package com.tommy.identity.presentation.controller;
 
 import com.tommy.identity.application.dto.request.UpdateProfileRequest;
+import com.tommy.identity.application.dto.response.LoginHistoryResponse;
 import com.tommy.identity.application.dto.response.PublicProfileResponse;
 import com.tommy.identity.application.dto.response.UserProfileResponse;
 import com.tommy.identity.application.service.IUserService;
 import com.tommy.identity.presentation.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.function.EntityResponse;
 
 import java.util.UUID;
 
@@ -74,5 +77,21 @@ public class UserController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200,"Deactivated account successfully",null));
+    }
+
+    // Get log login history
+    @GetMapping("/me/login-history")
+    public ResponseEntity<ApiResponse<Page<LoginHistoryResponse>>> getMyLoginHistory(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+
+        String userIdStr = SecurityContextHolder.getContext().getAuthentication().getName();
+        UUID userId = UUID.fromString(userIdStr);
+
+        Page<LoginHistoryResponse> history = userService.getMyLoginHistory(userId, page, size);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200,"Get login history successful",history));
     }
 }

@@ -1,8 +1,10 @@
 package com.tommy.identity.application.service;
 
 import com.tommy.identity.application.dto.request.UpdateProfileRequest;
+import com.tommy.identity.application.dto.response.LoginHistoryResponse;
 import com.tommy.identity.application.dto.response.PublicProfileResponse;
 import com.tommy.identity.application.dto.response.UserProfileResponse;
+import org.springframework.data.domain.Page;
 
 import java.util.UUID;
 
@@ -28,5 +30,10 @@ public interface IUserService {
      * Vô hiệu hóa tài khoản và thu hồi phiên đăng nhập
      * */
     void deactivateMyAccount(UUID userId);
+
+    /**
+     * Xem lịch sử đăng nhập
+     * */
+    Page<LoginHistoryResponse> getMyLoginHistory(UUID userId, int page, int size);
 
 }

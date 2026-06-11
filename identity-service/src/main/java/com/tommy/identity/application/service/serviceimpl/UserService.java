@@ -1,5 +1,6 @@
 package com.tommy.identity.application.service.serviceimpl;
 import com.tommy.identity.application.dto.request.UpdateProfileRequest;
+import com.tommy.identity.application.dto.response.LoginHistoryResponse;
 import com.tommy.identity.application.dto.response.PublicProfileResponse;
 import com.tommy.identity.application.dto.response.UserProfileResponse;
 import com.tommy.identity.application.service.IUserService;
@@ -16,6 +17,9 @@ import com.tommy.identity.infrastructure.persistence.repository.UserProfileRepos
 import com.tommy.identity.infrastructure.persistence.repository.UserSecurityLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -167,4 +171,31 @@ public class UserService implements IUserService {
 
         log.info("User {} has successfully deactivated their account.", account.getUsername());
     }
+
+
+    /*
+     * View log login history
+     * */
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<LoginHistoryResponse> getMyLoginHistory(UUID userId, int page, int size) {
+        // 1.Init paging
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 2. Get list log from database
+        Page<UserSecurityLog> logPage = securityLogRepository.findAllByUserIdOrderByCreatedAtDesc(userId, pageable);
+
+        // 3. Map entity to DTO
+        return logPage.map(log -> LoginHistoryResponse.builder()
+                .logId(log.getId())
+                .eventType(log.getEventType())
+                .timestamp(log.getCreatedAt())
+                .metadata(log.getMetadata())
+                .build());
+    }
+
+
+
+
 }
