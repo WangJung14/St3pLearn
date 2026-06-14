@@ -101,6 +101,9 @@ public class CourseService implements ICourseService {
         return course;
     }
 
+    /*
+    * Get All course for admin
+    * */
     @Override
     @Transactional(readOnly = true)
     public Page<Course> getAllCoursesForAdmin(int page , int size){
@@ -110,4 +113,29 @@ public class CourseService implements ICourseService {
 
         return courses;
     }
+
+    /*
+    * Archive course (soft delete)
+    * */
+
+    @Override
+    @Transactional
+    public void archiveCourse(UUID courseId, UUID instructorId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // 1. Check ownership
+        boolean isOwner = course.getInstructorId().equals(instructorId);
+        if(!isOwner){
+            throw new AppException(ErrorCode.FORBIDDEN_ROLE);
+        }
+
+        // 2. Change status to ARCHIVED
+        course.setStatus(CourseStatus.ARCHIVED);
+
+        courseRepository.save(course);
+        log.info("Instructor {} archived course: {}", instructorId, courseId);
+    }
+
+
 }

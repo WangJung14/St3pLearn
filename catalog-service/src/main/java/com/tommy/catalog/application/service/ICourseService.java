@@ -12,4 +12,5 @@ public interface ICourseService {
     Page<Course> getAllCoursesForAdmin(int page , int size);
     Course createCourse(UUID instructorId, CreateCourseRequest request);
     Course updateCourse(UUID courseId, UUID instructorId, UpdateCourseRequest request);
+    void archiveCourse(UUID courseId, UUID instructorId);
 }

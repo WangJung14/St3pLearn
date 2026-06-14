@@ -14,9 +14,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.function.EntityResponse;
 
 import java.util.UUID;
+import com.tommy.common.security.RequireRole;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -71,19 +71,12 @@ public class CourseController {
 
     // get all course for admin
     @GetMapping
+    @RequireRole("ADMIN")
     public ResponseEntity<ApiResponse<Page<Course>>> getAllCourses(
-            @RequestHeader("X-User-Role") String role,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
-
     ){
         log.info("Admin requested all courses list with page: {}, size: {}", page, size);
-
-        // check role , if not admin return
-        boolean isAdmin = "ADMIN".equalsIgnoreCase(role);
-        if(!isAdmin) {
-            throw new AppException(ErrorCode.FORBIDDEN_ROLE);
-        }
 
         Page<Course> coursePage = courseService.getAllCoursesForAdmin(page, size);
         return ResponseEntity
@@ -101,4 +94,15 @@ public class CourseController {
                 .body(ApiResponse.success(200,"Get course successful",course));
     }
 
+    //Archive course ( soft delete)
+    @DeleteMapping("/{courseId}/archive")
+    @RequireRole({"TEACHER", "ADMIN"})
+    public ResponseEntity<ApiResponse<Void>> archiveCourse(
+            @PathVariable UUID courseId,
+            @RequestHeader("X-User-Id") UUID instructorId) {
+
+        courseService.archiveCourse(courseId, instructorId);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "Course successfully archived (soft deleted)", null));
+    }
 }

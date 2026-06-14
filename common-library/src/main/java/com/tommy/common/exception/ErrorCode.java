@@ -10,6 +10,7 @@ public enum ErrorCode {
     USER_EXISTED(400, "User existed", HttpStatus.BAD_REQUEST),
     UNAUTHENTICATED(401, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(403, "You do not have permission", HttpStatus.FORBIDDEN),
+    FORBIDDEN_ROLE(403, "You do not have the required role to access this resource", HttpStatus.FORBIDDEN),
     UNCATCHED_EXCEPTION(500, "Uncatched exception", HttpStatus.INTERNAL_SERVER_ERROR),
     ;
 
