@@ -72,3 +72,6 @@
 **/*.DS_Store
 Thumbs.db
 desktop.ini
+
+# Docs
+docs/Query/Identity_Query.sql

@@ -11,6 +11,10 @@ import com.tommy.catalog.infrastructure.persistence.repository.CourseRepository;
 import com.tommy.catalog.util.SlugUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,5 +88,26 @@ public class CourseService implements ICourseService {
         log.info("Instructor {} successfully updated course: {}", instructorId, courseId);
 
         return updatedCourse;
+    }
+
+    /*
+    * Get course by id
+    * */
+    @Override
+    @Transactional(readOnly = true)
+    public Course getCourseById(UUID courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+        return course;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Course> getAllCoursesForAdmin(int page , int size){
+        // sort by creation date (createAt) in descending order
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Course> courses = courseRepository.findAll(pageable);
+
+        return courses;
     }
 }

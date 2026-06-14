@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+
 
 @Component
 @Slf4j
@@ -34,13 +36,18 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
-
+        HttpMethod method = exchange.getRequest().getMethod();
         // 1. If it's a Public API, let it go
         if (publicEndpoints.stream().anyMatch(path::startsWith)) {
             return chain.filter(exchange);
         }
 
-        // 2. Get Token from Header Authorization
+        // 2.Public gateway
+        if (path.startsWith("/api/courses") && HttpMethod.GET.equals(method)) {
+            return chain.filter(exchange);
+        }
+
+        // 3. Get Token from Header Authorization
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return unauthenticated(exchange);
@@ -50,7 +57,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
         try {
             byte[] keyBytes = io.jsonwebtoken.io.Decoders.BASE64.decode(secretKey);
-            // 3.JWT decoding
+            // 4.JWT decoding
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(Keys.hmacShaKeyFor(keyBytes))
                     .build()
@@ -61,7 +68,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
             String role = claims.get("role", String.class);
 
-            // 4. IMPORTANT: "Inject" userId into the new Header
+            // 5. IMPORTANT: "Inject" userId into the new Header
             // Catalog Service will read this Header instead of JWT
             ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                     .header("X-User-Id", userId)
