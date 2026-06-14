@@ -27,6 +27,8 @@ public enum ErrorCode {
 
     COURSE_ALREADY_ARCHIVED(409, HttpStatus.CONFLICT, "This course has already been archived."),
 
+    COURSE_ACCESS_DENIED(403, HttpStatus.FORBIDDEN, "You do not have permission to access this course."),
+
     // Category errors
     CATEGORY_NOT_FOUND(404, HttpStatus.NOT_FOUND, "Category not found."),
 

@@ -1,8 +1,9 @@
 package com.tommy.catalog.presentation.controller;
 
 import com.tommy.catalog.application.dto.request.CreateCourseRequest;
+import com.tommy.catalog.application.dto.request.UpdateCourseRequest;
 import com.tommy.catalog.application.dto.response.ApiResponse;
-import com.tommy.catalog.application.dto.service.ICourseService;
+import com.tommy.catalog.application.service.ICourseService;
 import com.tommy.catalog.domain.entity.Course;
 import com.tommy.catalog.domain.exception.AppException;
 import com.tommy.catalog.domain.exception.ErrorCode;
@@ -41,5 +42,26 @@ public class CourseController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(200,"Create a successful course",createdCourse));
+    }
+
+    @PostMapping("/{courseId}")
+    public ResponseEntity<ApiResponse<Course>> updateCourse(
+            @PathVariable UUID courseId,
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @RequestHeader("X-User-Role") String role,
+            @Valid @RequestBody UpdateCourseRequest request) {
+
+        log.info("Received request to update course {} from instructor: {}", courseId, instructorId);
+
+        // Check role
+        if (!"TEACHER".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) {
+            throw new AppException(ErrorCode.FORBIDDEN_ROLE);
+        }
+
+        Course updatedCourse = courseService.updateCourse(courseId, instructorId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200,"Update a successful course",updatedCourse));
     }
 }

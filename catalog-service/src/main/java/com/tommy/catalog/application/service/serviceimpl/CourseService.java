@@ -1,9 +1,12 @@
-package com.tommy.catalog.application.dto.service.serviceimpl;
+package com.tommy.catalog.application.service.serviceimpl;
 
 import com.tommy.catalog.application.dto.request.CreateCourseRequest;
-import com.tommy.catalog.application.dto.service.ICourseService;
+import com.tommy.catalog.application.dto.request.UpdateCourseRequest;
+import com.tommy.catalog.application.service.ICourseService;
 import com.tommy.catalog.domain.entity.Course;
 import com.tommy.catalog.domain.enums.CourseStatus;
+import com.tommy.catalog.domain.exception.AppException;
+import com.tommy.catalog.domain.exception.ErrorCode;
 import com.tommy.catalog.infrastructure.persistence.repository.CourseRepository;
 import com.tommy.catalog.util.SlugUtil;
 import lombok.RequiredArgsConstructor;
@@ -52,5 +55,34 @@ public class CourseService implements ICourseService {
         log.info("Teacher {} created new draft course: {}", instructorId, savedCourse.getSlug());
 
         return savedCourse;
+    }
+
+    /*
+    * Update course
+    * */
+    @Override
+    @Transactional
+    public Course updateCourse(UUID courseId, UUID instructorId, UpdateCourseRequest request) {
+        // 1. Find course by id
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // 2. Check id of the course creator and editor.
+        if (!course.getInstructorId().equals(instructorId)) {
+            throw new AppException(ErrorCode.COURSE_ACCESS_DENIED);
+        }
+
+        // 3. Update data
+        course.setTitle(request.getTitle());
+        course.setShortDescription(request.getShortDescription());
+        course.setLevel(request.getLevel());
+        course.setLanguage(request.getLanguage());
+        course.setPrice(request.getPrice());
+
+        // 4. Save to database
+        Course updatedCourse = courseRepository.save(course);
+        log.info("Instructor {} successfully updated course: {}", instructorId, courseId);
+
+        return updatedCourse;
     }
 }
