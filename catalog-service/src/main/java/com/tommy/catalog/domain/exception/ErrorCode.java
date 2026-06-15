@@ -1,7 +1,5 @@
 package com.tommy.catalog.domain.exception;
 
-
-
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -41,6 +39,7 @@ public enum ErrorCode {
 
     // Chapter errors
     CHAPTER_NOT_FOUND(404, HttpStatus.NOT_FOUND, "Chapter not found."),
+    CHAPTER_ACCESS_DENIED(403, HttpStatus.FORBIDDEN, "This chapter does not belong to the specified course."),
 
     // Lesson errors
     LESSON_NOT_FOUND(404, HttpStatus.NOT_FOUND, "Lesson not found."),

@@ -46,4 +46,19 @@ public class ChapterController {
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(201,"Create new chapter successful ",chapter));
     }
+
+    // Update chapter
+    @PostMapping("/{chapterId}")
+    @RequireRole({"ADMIN","TEACHER"})
+    public ResponseEntity<ApiResponse<CourseChapter>> updateChapter(
+            @PathVariable UUID courseId,
+            @PathVariable UUID chapterId,
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @Valid @RequestBody ChapterRequest request) {
+
+        CourseChapter chapter = chapterService.updateChapter(courseId, chapterId, instructorId, request);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200,"Update chapter successful ",chapter));
+    }
 }

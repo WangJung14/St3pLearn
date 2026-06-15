@@ -56,6 +56,32 @@ public class ChapterService implements IChapterService {
         return chapterRepository.save(chapter);
     }
 
+    /*
+    * Update title chapter
+    * */
+    @Override
+    @Transactional
+    public CourseChapter updateChapter(UUID courseId, UUID chapterId, UUID instructorId, ChapterRequest request) {
+
+        // 1. Validate course ownership
+        validateCourseOwnership(courseId,instructorId);
+
+        // 2. Find chapter by id
+        CourseChapter chapter = chapterRepository.findById(chapterId)
+                .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
+
+        // 3. Make sure this chapter actually belongs to this courseId
+        boolean isBelongCourse = chapter.getCourseId().equals(courseId);
+        if(!isBelongCourse){
+            throw new AppException(ErrorCode.CHAPTER_ACCESS_DENIED);
+        }
+
+        chapter.setTitle(request.getTitle());
+
+        CourseChapter savedChapter = chapterRepository.save(chapter);
+        return savedChapter;
+    }
+
 
     /*
         helped function

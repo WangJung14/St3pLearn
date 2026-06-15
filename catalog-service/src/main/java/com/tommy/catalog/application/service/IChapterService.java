@@ -12,4 +12,7 @@ public interface IChapterService {
 
     // create new chapter
     CourseChapter createChapter(UUID courseId, UUID instructorId, ChapterRequest request);
+
+    // update chapter
+    CourseChapter updateChapter(UUID courseId, UUID chapterId, UUID instructorId, ChapterRequest request);
 }
