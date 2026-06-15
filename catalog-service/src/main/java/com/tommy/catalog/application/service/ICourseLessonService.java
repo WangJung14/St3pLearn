@@ -13,4 +13,7 @@ public interface ICourseLessonService {
 
     // Create new lesson
     CourseLesson createLesson(UUID courseId, UUID chapterId, UUID instructorId, LessonRequest request);
+
+    // Update lesson
+    CourseLesson updateLesson(UUID courseId, UUID chapterId,UUID lessonId,UUID instructorId, LessonRequest request);
 }

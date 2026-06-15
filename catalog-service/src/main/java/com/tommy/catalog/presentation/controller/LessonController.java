@@ -50,4 +50,22 @@ public class LessonController {
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(201,"Create lesson successful",lesson));
     }
+
+    // Update lesson
+    @PostMapping("/{lessonId}")
+    @RequireRole({"ADMIN","TEACHER"})
+    public ResponseEntity<ApiResponse<CourseLesson>> updateLesson(
+            @PathVariable UUID courseId,
+            @PathVariable UUID chapterId,
+            @PathVariable UUID lessonId,
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @Valid @RequestBody LessonRequest request
+    )
+    {
+        CourseLesson lesson = courseLessonService.updateLesson(courseId, chapterId, lessonId, instructorId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200,"Update lesson successful",lesson));
+    }
 }

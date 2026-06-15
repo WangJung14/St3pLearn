@@ -73,6 +73,33 @@ public class CourseLessonService implements ICourseLessonService {
         return saved;
     }
 
+    @Override
+    @Transactional
+    public CourseLesson updateLesson(UUID courseId , UUID chapterId, UUID lessonId, UUID instructorId, LessonRequest request){
+
+        // validate logic and ownership of course
+        validateOwnershipAndHierarchy(courseId, chapterId, instructorId);
+
+        // find lesson by id
+        CourseLesson lesson = courseLessonRepository.findById(lessonId)
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
+
+        // Check if lesson is in chapter
+        boolean isInChapter = lesson.getChapterId().equals(chapterId);
+        if(!isInChapter){
+            throw new AppException(ErrorCode.LESSON_NOT_FOUND);
+        }
+
+        lesson.setTitle(request.getTitle());
+        lesson.setLessonType(request.getLessonType());
+
+        if (request.getDurationSeconds() != null) lesson.setDurationSeconds(request.getDurationSeconds());
+        if (request.getIsPreview() != null) lesson.setIsPreview(request.getIsPreview());
+
+        CourseLesson saved =  courseLessonRepository.save(lesson);
+        return saved;
+    }
+
     /*
     * Helped function
     * */
