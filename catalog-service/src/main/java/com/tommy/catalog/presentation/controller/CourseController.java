@@ -1,5 +1,6 @@
 package com.tommy.catalog.presentation.controller;
 
+import com.tommy.catalog.application.dto.request.CourseTaxonomyRequest;
 import com.tommy.catalog.application.dto.request.CreateCourseRequest;
 import com.tommy.catalog.application.dto.request.UpdateCourseRequest;
 import com.tommy.catalog.application.dto.response.ApiResponse;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 import com.tommy.common.security.RequireRole;
+import org.springframework.web.servlet.function.EntityResponse;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -104,5 +106,22 @@ public class CourseController {
         courseService.archiveCourse(courseId, instructorId);
 
         return ResponseEntity.ok(ApiResponse.success(200, "Course successfully archived (soft deleted)", null));
+    }
+
+    // Assign category and tags for course
+    @PostMapping("/{courseId}/taxonomy")
+    @RequireRole({"TEACHER", "ADMIN"})
+    public ResponseEntity<ApiResponse<Course>>assignTaxonomy(
+            @PathVariable UUID courseId,
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @Valid
+            @RequestBody CourseTaxonomyRequest request
+    ){
+        log.info("Instructor {} updating categories/tags for course {}", instructorId, courseId);
+        Course updatedCourse = courseService.assignCategoriesAndTags(courseId, instructorId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200,"Update a successful course",updatedCourse));
     }
 }

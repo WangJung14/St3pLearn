@@ -80,7 +80,7 @@ public class Course {
     private Integer totalStudents = 0;
 
     @Builder.Default
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "course_categories",
             joinColumns = @JoinColumn(name = "course_id"),
@@ -89,7 +89,7 @@ public class Course {
     private Set<Category> categories = new HashSet<>();
 
     @Builder.Default
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "course_tags",
             joinColumns = @JoinColumn(name = "course_id"),

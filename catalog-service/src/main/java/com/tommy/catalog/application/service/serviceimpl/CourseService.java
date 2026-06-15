@@ -1,13 +1,18 @@
 package com.tommy.catalog.application.service.serviceimpl;
 
+import com.tommy.catalog.application.dto.request.CourseTaxonomyRequest;
 import com.tommy.catalog.application.dto.request.CreateCourseRequest;
 import com.tommy.catalog.application.dto.request.UpdateCourseRequest;
 import com.tommy.catalog.application.service.ICourseService;
+import com.tommy.catalog.domain.entity.Category;
 import com.tommy.catalog.domain.entity.Course;
+import com.tommy.catalog.domain.entity.Tag;
 import com.tommy.catalog.domain.enums.CourseStatus;
 import com.tommy.catalog.domain.exception.AppException;
 import com.tommy.catalog.domain.exception.ErrorCode;
+import com.tommy.catalog.infrastructure.persistence.repository.CategoryRepository;
 import com.tommy.catalog.infrastructure.persistence.repository.CourseRepository;
+import com.tommy.catalog.infrastructure.persistence.repository.TagRepository;
 import com.tommy.catalog.util.SlugUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +23,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -26,6 +33,8 @@ import java.util.UUID;
 public class CourseService implements ICourseService {
 
     private final CourseRepository courseRepository;
+    private final CategoryRepository categoryRepository;
+    private final TagRepository tagRepository;
 
     @Override
     @Transactional
@@ -137,5 +146,38 @@ public class CourseService implements ICourseService {
         log.info("Instructor {} archived course: {}", instructorId, courseId);
     }
 
+    /*
+    * Assign category and tag for course
+    * */
+    @Override
+    @Transactional
+    public Course assignCategoriesAndTags(UUID courseId, UUID instructorId, CourseTaxonomyRequest request){
+        // 1. Find course by id
+        Course course =  courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // 2. Validate ownership
+        boolean isOwner = course.getInstructorId().equals(instructorId);
+        if(!isOwner){
+            throw new AppException(ErrorCode.FORBIDDEN_ROLE);
+        }
+
+        // 3. Handling categories
+        List<Category> validCategories = categoryRepository.findAllById(request.getCategoryIds());
+        if(validCategories.isEmpty()){
+            throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+        course.setCategories(new HashSet<>(validCategories));
+
+        // 4. Handling tags
+        boolean isValidTag = request.getTagIds() != null && !request.getTagIds().isEmpty();
+        if (isValidTag) {
+            List<Tag> validTags = tagRepository.findAllById(request.getTagIds());
+            course.setTags(new HashSet<>(validTags));
+        } else {
+            course.getTags().clear(); // if empty clear all tag
+        }
+        return  courseRepository.save(course);
+    }
 
 }
