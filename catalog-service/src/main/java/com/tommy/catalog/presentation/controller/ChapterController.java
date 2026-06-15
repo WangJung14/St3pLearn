@@ -1,22 +1,21 @@
 package com.tommy.catalog.presentation.controller;
 
+import com.tommy.catalog.application.dto.request.ChapterRequest;
 import com.tommy.catalog.application.service.IChapterService;
 import com.tommy.catalog.domain.entity.CourseChapter;
-import com.tommy.catalog.infrastructure.persistence.repository.CourseChapterRepository;
 import com.tommy.common.response.ApiResponse;
+import com.tommy.common.security.RequireRole;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/courses/{courseId}/chapters")
+            @RequestMapping("/api/courses/{courseId}/chapters")
 @RequiredArgsConstructor
 public class ChapterController {
 
@@ -32,5 +31,19 @@ public class ChapterController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200,"Get all chapters in the course successfully",courseChapters));
+    }
+
+    // Create new chapter
+    @PostMapping
+    @RequireRole({"TEACHER", "ADMIN"})
+    public ResponseEntity<ApiResponse<CourseChapter>> createChapter(
+            @PathVariable UUID courseId,
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @Valid @RequestBody ChapterRequest request) {
+
+        CourseChapter chapter = chapterService.createChapter(courseId, instructorId, request);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(201,"Create new chapter successful ",chapter));
     }
 }
