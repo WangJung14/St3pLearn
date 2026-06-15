@@ -84,6 +84,28 @@ public class ChapterService implements IChapterService {
 
 
     /*
+    * Delete chapter in course
+    * */
+
+    @Override
+    @Transactional
+    public void deleteChapter(UUID courseId, UUID chapterId, UUID instructorId) {
+        validateCourseOwnership(courseId, instructorId);
+
+        CourseChapter chapter = chapterRepository.findById(chapterId)
+                .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
+
+        if (!chapter.getCourseId().equals(courseId)) {
+            throw new AppException(ErrorCode.CHAPTER_ACCESS_DENIED);
+        }
+
+        // Lưu ý: Sau này khi làm Lesson, sẽ phải check xem Chapter này có Lesson nào không.
+        // Nếu có thì chặn không cho xóa hoặc xóa luôn các Lesson bên trong (Cascade). Hiện tại thì cứ xóa thẳng.
+        chapterRepository.delete(chapter);
+    }
+
+
+    /*
         helped function
     */
     // validate course ownership

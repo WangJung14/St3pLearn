@@ -61,4 +61,16 @@ public class ChapterController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200,"Update chapter successful ",chapter));
     }
+
+    // Delete chapter
+    @DeleteMapping("/{chapterId}")
+    @RequireRole({"TEACHER", "ADMIN"})
+    public ResponseEntity<ApiResponse<Void>> deleteChapter(
+            @PathVariable UUID courseId,
+            @PathVariable UUID chapterId,
+            @RequestHeader("X-User-Id") UUID instructorId) {
+
+        chapterService.deleteChapter(courseId, chapterId, instructorId);
+        return ResponseEntity.ok(ApiResponse.success(200, "Delete chapter successful", null));
+    }
 }
