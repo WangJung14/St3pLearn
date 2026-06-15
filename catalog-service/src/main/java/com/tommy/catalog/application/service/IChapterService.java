@@ -17,5 +17,5 @@ public interface IChapterService {
     CourseChapter updateChapter(UUID courseId, UUID chapterId, UUID instructorId, ChapterRequest request);
 
     // delete chapter
-    void deleteChapter(UUID courseId, UUID chapterId, UUID instructorId)
+    void deleteChapter(UUID courseId, UUID chapterId, UUID instructorId);
 }
