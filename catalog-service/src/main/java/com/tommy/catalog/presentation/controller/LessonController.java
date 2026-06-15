@@ -68,4 +68,20 @@ public class LessonController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200,"Update lesson successful",lesson));
     }
+
+    // Delete lesson
+    @DeleteMapping("/{lessonId}")
+    @RequireRole({"ADMIN","TEACHER"})
+    public ResponseEntity<ApiResponse<CourseLesson>> deleteLesson(
+            @PathVariable UUID courseId,
+            @PathVariable UUID chapterId,
+            @PathVariable UUID lessonId,
+            @RequestHeader("X-User-Id") UUID instructorId
+    )
+    {
+        courseLessonService.deleteLesson(courseId, chapterId, lessonId, instructorId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200,"Delete lesson successful",null));
+    }
 }

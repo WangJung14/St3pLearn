@@ -101,6 +101,29 @@ public class CourseLessonService implements ICourseLessonService {
     }
 
     /*
+    * Delete lesson
+    * */
+    @Override
+    @Transactional
+    public void deleteLesson(UUID courseId, UUID chapterId, UUID lessonId, UUID instructorId) {
+        // validate logic and ownership of course
+        validateOwnershipAndHierarchy(courseId, chapterId, instructorId);
+
+        // find lesson by id
+        CourseLesson lesson = courseLessonRepository.findById(lessonId)
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
+
+        boolean isInChapter = lesson.getChapterId().equals(chapterId);
+        if(!isInChapter){
+            throw new AppException(ErrorCode.LESSON_NOT_FOUND);
+        }
+
+        // delete lesson from database
+        courseLessonRepository.delete(lesson);
+        log.info("Delete lesson with id {} ", lessonId);
+    }
+
+    /*
     * Helped function
     * */
     // Validate logic and ownership of course

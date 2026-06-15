@@ -16,4 +16,7 @@ public interface ICourseLessonService {
 
     // Update lesson
     CourseLesson updateLesson(UUID courseId, UUID chapterId,UUID lessonId,UUID instructorId, LessonRequest request);
+
+    // Delete course
+    void deleteLesson(UUID courseId, UUID chapterId, UUID lessonId, UUID instructorId);
 }
