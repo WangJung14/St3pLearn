@@ -4,8 +4,8 @@ import com.tommy.catalog.application.dto.request.TagRequest;
 
 import com.tommy.catalog.application.service.ITagService;
 import com.tommy.catalog.domain.entity.Tag;
-import com.tommy.catalog.domain.exception.AppException;
-import com.tommy.catalog.domain.exception.ErrorCode;
+import com.tommy.common.exception.AppException;
+import com.tommy.common.exception.ErrorCode;
 import com.tommy.catalog.infrastructure.persistence.repository.TagRepository;
 
 import lombok.RequiredArgsConstructor;

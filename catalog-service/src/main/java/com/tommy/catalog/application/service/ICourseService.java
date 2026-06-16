@@ -6,7 +6,6 @@ import com.tommy.catalog.application.dto.request.UpdateCourseRequest;
 import com.tommy.catalog.domain.entity.Course;
 import org.springframework.data.domain.Page;
 
-import java.util.Set;
 import java.util.UUID;
 
 public interface ICourseService {
@@ -18,4 +17,7 @@ public interface ICourseService {
 
     // Assign category and tag
     Course assignCategoriesAndTags(UUID courseId, UUID instructorId, CourseTaxonomyRequest request);
+
+    // Submit course for admin approve
+    void submitCourseForApproval(UUID courseId, UUID instructorId);
 }

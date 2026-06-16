@@ -16,4 +16,8 @@ public interface CourseLessonRepository extends JpaRepository<CourseLesson, UUID
 
     @Query("SELECT COALESCE(MAX(l.displayOrder), 0) FROM CourseLesson l WHERE l.chapterId = :chapterId")
     Integer findMaxDisplayOrderByChapterId(@Param("chapterId") UUID chapterId);
+
+    // Find all chapter of course then count all lesson in this chapter
+    @Query("SELECT COUNT(l) FROM CourseLesson l WHERE l.chapterId IN (SELECT c.id FROM CourseChapter c WHERE c.courseId = :courseId)")
+    int countLessonsByCourseId(@Param("courseId") UUID courseId);
 }

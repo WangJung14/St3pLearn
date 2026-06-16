@@ -3,8 +3,8 @@ package com.tommy.catalog.application.service.serviceimpl;
 import com.tommy.catalog.application.dto.request.CategoryRequest;
 import com.tommy.catalog.application.service.ICategoryService;
 import com.tommy.catalog.domain.entity.Category;
-import com.tommy.catalog.domain.exception.AppException;
-import com.tommy.catalog.domain.exception.ErrorCode;
+import com.tommy.common.exception.AppException;
+import com.tommy.common.exception.ErrorCode;
 import com.tommy.catalog.infrastructure.persistence.repository.CategoryRepository;
 
 import com.tommy.common.util.SlugUtil;

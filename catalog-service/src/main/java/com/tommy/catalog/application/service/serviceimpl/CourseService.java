@@ -6,13 +6,12 @@ import com.tommy.catalog.application.dto.request.UpdateCourseRequest;
 import com.tommy.catalog.application.service.ICourseService;
 import com.tommy.catalog.domain.entity.Category;
 import com.tommy.catalog.domain.entity.Course;
+import com.tommy.catalog.domain.entity.CourseApprovalRequest;
 import com.tommy.catalog.domain.entity.Tag;
 import com.tommy.catalog.domain.enums.CourseStatus;
-import com.tommy.catalog.domain.exception.AppException;
-import com.tommy.catalog.domain.exception.ErrorCode;
-import com.tommy.catalog.infrastructure.persistence.repository.CategoryRepository;
-import com.tommy.catalog.infrastructure.persistence.repository.CourseRepository;
-import com.tommy.catalog.infrastructure.persistence.repository.TagRepository;
+import com.tommy.common.exception.AppException;
+import com.tommy.common.exception.ErrorCode;
+import com.tommy.catalog.infrastructure.persistence.repository.*;
 import com.tommy.catalog.util.SlugUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +34,8 @@ public class CourseService implements ICourseService {
     private final CourseRepository courseRepository;
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
+    private final CourseLessonRepository  courseLessonRepository;
+    private final CourseApprovalRequestRepository courseApprovalRequestRepository;
 
     @Override
     @Transactional
@@ -178,6 +179,53 @@ public class CourseService implements ICourseService {
             course.getTags().clear(); // if empty clear all tag
         }
         return  courseRepository.save(course);
+    }
+
+    /*
+    * Submit course for admin approve
+    * */
+    @Override
+    @Transactional
+    public void submitCourseForApproval(UUID courseId, UUID instructorId){
+
+        // 1. Find course by id
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // 2. Validate ownership of course
+        boolean isOwner = instructorId.equals(course.getInstructorId());
+        if(!isOwner){
+            throw new AppException(ErrorCode.FORBIDDEN_ROLE);
+        }
+
+        // 3. Only allow courses with DRAFT or REJECTED status to be submitted
+        boolean canBeSubmitted = CourseStatus.DRAFT.equals(course.getStatus())
+                || CourseStatus.REJECTED.equals(course.getStatus());
+        if(!canBeSubmitted){
+            throw new AppException(ErrorCode.COURSE_CANNOT_BE_SUBMITTED);
+        }
+
+        // 4. Block empty content. If this course doesn't have any lesson , handle error and block it
+        int lessonCount = courseLessonRepository.countLessonsByCourseId(courseId);
+        if(lessonCount == 0){
+            log.warn("Instructor {} attempted to submit an empty course {}", instructorId, courseId);
+            throw new AppException(ErrorCode.COURSE_CONTENT_REQUIRED);
+        }
+
+        // 5. Update status of course
+        course.setStatus(CourseStatus.PENDING_REVIEW);
+        courseRepository.save(course);
+
+        // 6. Create ticket for admin
+        CourseApprovalRequest approvalRequest = CourseApprovalRequest.builder()
+                .courseId(courseId)
+                .submittedBy(instructorId)
+                .status("PENDING")
+                .build();
+
+       courseApprovalRequestRepository.save(approvalRequest);
+
+       log.info("Course {} successfully submitted for approval by instructor {}", courseId, instructorId);
     }
 
 }

@@ -6,8 +6,8 @@ import com.tommy.catalog.application.dto.request.UpdateCourseRequest;
 import com.tommy.catalog.application.dto.response.ApiResponse;
 import com.tommy.catalog.application.service.ICourseService;
 import com.tommy.catalog.domain.entity.Course;
-import com.tommy.catalog.domain.exception.AppException;
-import com.tommy.catalog.domain.exception.ErrorCode;
+import com.tommy.common.exception.AppException;
+import com.tommy.common.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -123,5 +123,19 @@ public class CourseController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200,"Update a successful course",updatedCourse));
+    }
+
+    // Submit course for admin approved
+    @PostMapping("/{courseId}/submit")
+    @RequireRole({"ADMIN","TEACHER"})
+    public ResponseEntity<ApiResponse<Void>> submitForApproval(
+            @PathVariable UUID courseId,
+            @RequestHeader("X-User-Id") UUID instructorId) {
+
+        courseService.submitCourseForApproval(courseId, instructorId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200,"Course review request submitted successfully.",null));
     }
 }
