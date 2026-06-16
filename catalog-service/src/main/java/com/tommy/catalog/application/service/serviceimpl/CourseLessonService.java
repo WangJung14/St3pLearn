@@ -128,7 +128,8 @@ public class CourseLessonService implements ICourseLessonService {
     * */
     // Validate logic and ownership of course
 
-    private void validateOwnershipAndHierarchy(UUID courseId, UUID chapterId, UUID instructorId){
+    @Override
+    public void validateOwnershipAndHierarchy(UUID courseId, UUID chapterId, UUID instructorId){
 
         // 1. Find chapter by id
         CourseChapter chapter = courseChapterRepository.findById(chapterId)

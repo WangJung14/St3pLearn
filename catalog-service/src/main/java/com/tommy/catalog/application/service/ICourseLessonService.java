@@ -19,4 +19,7 @@ public interface ICourseLessonService {
 
     // Delete course
     void deleteLesson(UUID courseId, UUID chapterId, UUID lessonId, UUID instructorId);
+
+    // Validate logic and ownership course
+    void validateOwnershipAndHierarchy(UUID courseId, UUID chapterId, UUID instructorId);
 }

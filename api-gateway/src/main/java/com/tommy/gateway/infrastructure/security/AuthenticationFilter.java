@@ -43,7 +43,10 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         }
 
         // 2.Public gateway
-        if (path.startsWith("/api/courses") && HttpMethod.GET.equals(method)) {
+
+        if (path.startsWith("/api/courses")
+                && HttpMethod.GET.equals(method)
+                && !path.contains("/upload-signature")) {
             return chain.filter(exchange);
         }
 

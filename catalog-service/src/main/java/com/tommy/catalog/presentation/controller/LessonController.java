@@ -1,9 +1,13 @@
 package com.tommy.catalog.presentation.controller;
 
+import com.tommy.catalog.application.dto.request.LessonContentRequest;
 import com.tommy.catalog.application.dto.request.LessonRequest;
 import com.tommy.catalog.application.dto.response.ApiResponse;
 import com.tommy.catalog.application.service.ICourseLessonService;
+import com.tommy.catalog.application.service.ILessonContentService;
+import com.tommy.catalog.application.service.IMediaUploadService;
 import com.tommy.catalog.domain.entity.CourseLesson;
+import com.tommy.catalog.domain.entity.LessonContent;
 import com.tommy.common.security.RequireRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -19,6 +24,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LessonController {
     private final ICourseLessonService courseLessonService;
+    private final IMediaUploadService  mediaUploadService;
+    private final ILessonContentService lessonContentService;
 
     // Get lesson list
     @GetMapping
@@ -83,5 +90,39 @@ public class LessonController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200,"Delete lesson successful",null));
+    }
+
+    //upload-signature
+    @GetMapping("/upload-signature")
+    @RequireRole({"TEACHER", "ADMIN"})
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getUploadSignature(
+            @PathVariable UUID courseId,
+            @PathVariable UUID chapterId,
+            @RequestHeader("X-User-Id") UUID instructorId
+    ) {
+        courseLessonService.validateOwnershipAndHierarchy(courseId, chapterId, instructorId);
+
+        Map<String, Object> signatureData = mediaUploadService.generateCloudinarySignature();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200,"Get upload signature successful",signatureData));
+    }
+
+    // Save lesson content
+    @PostMapping("/{lessonId}/content")
+    @RequireRole({"TEACHER", "ADMIN"})
+    public ResponseEntity<ApiResponse<LessonContent>> saveLessonContent(
+            @PathVariable UUID courseId,
+            @PathVariable UUID chapterId,
+            @PathVariable UUID lessonId,
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @Valid @RequestBody LessonContentRequest request) {
+
+        LessonContent content = lessonContentService.saveContent(courseId, chapterId, lessonId, instructorId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(201,"Create lesson content successful",content));
     }
 }
