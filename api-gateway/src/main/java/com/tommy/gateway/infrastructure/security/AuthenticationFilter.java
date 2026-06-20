@@ -42,6 +42,11 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
 
+        // Allow OPTIONS requests for CORS preflight
+        if (HttpMethod.OPTIONS.equals(method)) {
+            return chain.filter(exchange);
+        }
+
         // 2.Public gateway
 
         if (path.startsWith("/api/courses")
