@@ -374,11 +374,45 @@ public class CourseService implements ICourseService {
     * Get a list of courses that the instructor has offered
     * */
     @Override
+    @Transactional(readOnly = true)
     public Page<Course> getMyCourses(UUID instructorId, int page, int size) {
         // Sort in descending order by creation time ( Newest at the top)
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
         return courseRepository.findByInstructorId(instructorId, pageable);
+    }
+
+    @Override
+    @Transactional
+    public void cancelCourseApproval(UUID courseId, UUID instructorId) {
+        // 1. Find course by id
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // 2. Verified ownership
+        boolean isOwnership = instructorId.equals(course.getInstructorId());
+        if (!isOwnership) {
+            throw new AppException(ErrorCode.FORBIDDEN_ROLE);
+        }
+
+        // 3. Make sure this course is in pending approval status
+        boolean isCourseInPending = CourseStatus.PENDING_REVIEW.equals(course.getStatus());
+        if (!isCourseInPending) {
+            throw new AppException(ErrorCode.INVALID_TICKET_STATUS);
+        }
+
+        // 4. Find ticket is pending
+        CourseApprovalRequest pendingTicket = courseApprovalRequestRepository.findByCourseIdAndStatus(courseId, "PENDING")
+                .orElseThrow(() -> new AppException(ErrorCode.APPROVAL_REQUEST_NOT_FOUND));
+
+        // 5. Recall request, change status from PENDING to DRAFT and set ticket status is CANCELED
+        course.setStatus(CourseStatus.DRAFT);
+        pendingTicket.setStatus("CANCELED");
+
+        courseRepository.save(course);
+        courseApprovalRequestRepository.save(pendingTicket);
+
+        log.info("Instructor {} successfully canceled the approval request for course {}", instructorId, courseId);
     }
 
 }

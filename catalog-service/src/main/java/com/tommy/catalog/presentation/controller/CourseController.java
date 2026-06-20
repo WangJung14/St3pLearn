@@ -207,4 +207,18 @@ public class CourseController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200, "Get list of course successful", myCourses));
     }
+
+    // Cancel approval request
+    @PostMapping("/{courseId}/cancel-submit")
+    @RequireRole({"TEACHER"}) // Only teacher can be called
+    public ResponseEntity<ApiResponse<Void>> cancelCourseApproval(
+            @PathVariable UUID courseId,
+            @RequestHeader("X-User-Id") UUID instructorId) {
+
+        courseService.cancelCourseApproval(courseId, instructorId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "The review request has been successfully recall. The course has returned to Draft status.", null));
+    }
 }

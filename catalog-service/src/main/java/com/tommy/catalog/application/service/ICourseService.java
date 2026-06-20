@@ -35,4 +35,7 @@ public interface ICourseService {
 
     // Get a list of courses that instructor has owner
     Page<Course> getMyCourses(UUID instructorId ,int page, int size);
+
+    // Recall Course Approval Request
+    void cancelCourseApproval(UUID courseId, UUID instructorId);
 }

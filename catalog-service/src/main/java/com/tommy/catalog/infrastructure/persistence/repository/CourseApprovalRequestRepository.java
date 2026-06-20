@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface CourseApprovalRequestRepository extends JpaRepository<CourseApprovalRequest, UUID> {
@@ -20,4 +21,7 @@ public interface CourseApprovalRequestRepository extends JpaRepository<CourseApp
 
     // Anti multi submit
     boolean existsByCourseIdAndStatus(UUID courseId, String status);
+
+    // Find ticket by status
+    Optional<CourseApprovalRequest> findByCourseIdAndStatus(UUID courseId, String status);
 }
