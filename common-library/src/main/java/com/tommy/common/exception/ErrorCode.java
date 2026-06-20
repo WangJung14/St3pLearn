@@ -24,6 +24,8 @@ public enum ErrorCode {
     COURSE_CANNOT_BE_SUBMITTED(409, "Only courses with DRAFT or REJECTED status can be submitted.", HttpStatus.CONFLICT),
     COURSE_CONTENT_REQUIRED(400, "The course must contain at least one chapter and one lesson before submission.", HttpStatus.BAD_REQUEST),
     COURSE_ALREADY_SUBMITTED(400, "This course has already been submitted yet",HttpStatus.CONFLICT),
+    COURSE_NOT_APPROVED_PUBLISH(400,"This course has not been reviewed. Only approved courses can be published",HttpStatus.BAD_REQUEST),
+
     // Category errors
     CATEGORY_NOT_FOUND(404, "Category not found.", HttpStatus.NOT_FOUND),
     CATEGORY_ALREADY_EXISTS(409, "A category with this name already exists.", HttpStatus.CONFLICT),

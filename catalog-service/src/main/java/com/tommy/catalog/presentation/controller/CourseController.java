@@ -221,4 +221,18 @@ public class CourseController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200, "The review request has been successfully recall. The course has returned to Draft status.", null));
     }
+
+    // PUBLISHED course
+    @PostMapping("/{courseId}/publish")
+    @RequireRole({"TEACHER"}) // Only teacher can be access
+    public ResponseEntity<ApiResponse<Void>> publishCourse(
+            @PathVariable UUID courseId,
+            @RequestHeader("X-User-Id") UUID instructorId) {
+
+        courseService.publishCourse(courseId, instructorId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "Course published successfully! Students can now find this course.", null));
+    }
 }

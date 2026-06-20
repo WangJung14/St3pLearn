@@ -38,4 +38,7 @@ public interface ICourseService {
 
     // Recall Course Approval Request
     void cancelCourseApproval(UUID courseId, UUID instructorId);
+
+    // Publish course
+    void publishCourse(UUID courseId, UUID instructorId);
 }

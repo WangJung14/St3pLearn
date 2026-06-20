@@ -415,4 +415,31 @@ public class CourseService implements ICourseService {
         log.info("Instructor {} successfully canceled the approval request for course {}", instructorId, courseId);
     }
 
+    @Override
+    @Transactional
+    public void publishCourse(UUID courseId, UUID instructorId) {
+        // 1. Find course by id
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // 2. Verified ownership
+        boolean isOwnership = instructorId.equals(course.getInstructorId());
+        if(!isOwnership) {
+            throw new AppException(ErrorCode.FORBIDDEN_ROLE);
+        }
+
+        // 3. Make sure this course has been approved
+        boolean isCourseHasBeenApproved = CourseStatus.APPROVED.equals(course.getStatus());
+        if (!isCourseHasBeenApproved) {
+            throw new AppException(ErrorCode.COURSE_NOT_APPROVED_PUBLISH);
+        }
+
+        // 4. Change status to PUBLISHED
+        course.setStatus(CourseStatus.PUBLISHED);
+
+        courseRepository.save(course);
+
+        log.info("Instructor {} successfully published course {}", instructorId, courseId);
+    }
+
 }
