@@ -370,4 +370,15 @@ public class CourseService implements ICourseService {
         return courseRepository.findAll(spec, pageable);
     }
 
+    /*
+    * Get a list of courses that the instructor has offered
+    * */
+    @Override
+    public Page<Course> getMyCourses(UUID instructorId, int page, int size) {
+        // Sort in descending order by creation time ( Newest at the top)
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        return courseRepository.findByInstructorId(instructorId, pageable);
+    }
+
 }

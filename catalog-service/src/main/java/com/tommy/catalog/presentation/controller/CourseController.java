@@ -192,4 +192,19 @@ public class CourseController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200, "Search for successful course listings", courses));
     }
+
+    // Get course by instructor_id
+    @GetMapping("/my-courses")
+    @RequireRole({"TEACHER"}) // Only teacher can access
+    public ResponseEntity<ApiResponse<Page<Course>>> getMyCourses(
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<Course> myCourses = courseService.getMyCourses(instructorId, page, size);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "Get list of course successful", myCourses));
+    }
 }

@@ -5,13 +5,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
 
     // 1. Lỗi hệ thống chưa được bắt (500)
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleRuntimeException(Exception exception) {
+
+        log.error("Errocode (500): ", exception);
+
         ErrorCode errorCode = ErrorCode.UNCATCHED_EXCEPTION;
         ApiResponse<Void> apiResponse = ApiResponse.error(errorCode.getCode(), errorCode.getMessage());
         return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);

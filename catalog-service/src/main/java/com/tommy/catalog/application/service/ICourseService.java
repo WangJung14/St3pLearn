@@ -32,4 +32,7 @@ public interface ICourseService {
 
     //Search course
     Page<Course> searchPublicCourses(CourseSearchRequest request);
+
+    // Get a list of courses that instructor has owner
+    Page<Course> getMyCourses(UUID instructorId ,int page, int size);
 }
