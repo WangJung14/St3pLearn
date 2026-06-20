@@ -2,6 +2,7 @@ package com.tommy.catalog.application.service;
 
 import com.tommy.catalog.application.dto.request.CourseTaxonomyRequest;
 import com.tommy.catalog.application.dto.request.CreateCourseRequest;
+import com.tommy.catalog.application.dto.request.ProcessApprovalRequest;
 import com.tommy.catalog.application.dto.request.UpdateCourseRequest;
 import com.tommy.catalog.domain.entity.Course;
 import org.springframework.data.domain.Page;
@@ -20,4 +21,7 @@ public interface ICourseService {
 
     // Submit course for admin approve
     void submitCourseForApproval(UUID courseId, UUID instructorId);
+
+    // Process Course Approval for ADMIN
+    void processCourseApproval(UUID requestId, UUID adminId, ProcessApprovalRequest request);
 }

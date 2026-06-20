@@ -2,6 +2,7 @@ package com.tommy.catalog.presentation.controller;
 
 import com.tommy.catalog.application.dto.request.CourseTaxonomyRequest;
 import com.tommy.catalog.application.dto.request.CreateCourseRequest;
+import com.tommy.catalog.application.dto.request.ProcessApprovalRequest;
 import com.tommy.catalog.application.dto.request.UpdateCourseRequest;
 import com.tommy.catalog.application.dto.response.ApiResponse;
 import com.tommy.catalog.application.service.ICourseService;
@@ -137,5 +138,20 @@ public class CourseController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200,"Course review request submitted successfully.",null));
+    }
+
+    // Process course approval for ADMIn
+    @PostMapping("/approvals/{requestId}/process")
+    @RequireRole({"ADMIN"})
+    public ResponseEntity<ApiResponse<Void>> processCourseApproval(
+            @PathVariable UUID requestId,
+            @RequestHeader("X-User-Id") UUID adminId,
+            @Valid @RequestBody ProcessApprovalRequest request) {
+
+        courseService.processCourseApproval(requestId, adminId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "Process course request successful", null));
     }
 }

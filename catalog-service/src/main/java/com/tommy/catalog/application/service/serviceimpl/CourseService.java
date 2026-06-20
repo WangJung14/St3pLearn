@@ -2,6 +2,7 @@ package com.tommy.catalog.application.service.serviceimpl;
 
 import com.tommy.catalog.application.dto.request.CourseTaxonomyRequest;
 import com.tommy.catalog.application.dto.request.CreateCourseRequest;
+import com.tommy.catalog.application.dto.request.ProcessApprovalRequest;
 import com.tommy.catalog.application.dto.request.UpdateCourseRequest;
 import com.tommy.catalog.application.service.ICourseService;
 import com.tommy.catalog.domain.entity.Category;
@@ -226,6 +227,64 @@ public class CourseService implements ICourseService {
        courseApprovalRequestRepository.save(approvalRequest);
 
        log.info("Course {} successfully submitted for approval by instructor {}", courseId, instructorId);
+    }
+
+    /*
+    * Process course Approvel for ADMIn
+    * */
+
+    @Override
+    @Transactional
+    public void processCourseApproval(UUID requestId, UUID adminId, ProcessApprovalRequest request){
+        // 1. Find ticket by status PENDING
+        CourseApprovalRequest approvalTicket = courseApprovalRequestRepository.findById(requestId)
+                .orElseThrow(() -> new AppException(ErrorCode.APPROVAL_REQUEST_NOT_FOUND));
+
+        // Check status
+        boolean isPending = "PENDING".equals(approvalTicket.getStatus());
+        if(!isPending){
+            throw new AppException(ErrorCode.INVALID_TICKET_STATUS);
+        }
+
+        // 2. Make sure this course also pending approvel
+        Course course = courseRepository.findById(approvalTicket.getCourseId())
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // Check status
+        boolean isCoursePending = CourseStatus.PENDING_REVIEW.equals(course.getStatus());
+        if (!isCoursePending) {
+            throw new AppException(ErrorCode.INVALID_TICKET_STATUS);
+        }
+
+
+        String action = request.getAction().toUpperCase();
+
+        switch (action) {
+            case "APPROVE" -> {
+                approvalTicket.setStatus("APPROVED");
+                course.setStatus(CourseStatus.APPROVED);
+            }
+
+            case "REJECT" -> {
+                if (request.getReviewNote() == null || request.getReviewNote().trim().isEmpty()) {
+                    throw new AppException(ErrorCode.REVIEW_NOTE_REQUIRED);
+                }
+
+                approvalTicket.setStatus("REJECTED");
+                approvalTicket.setReviewNote(request.getReviewNote());
+                course.setStatus(CourseStatus.REJECTED);
+            }
+
+            default -> throw new AppException(ErrorCode.INVALID_APPROVAL_ACTION);
+        }
+
+        approvalTicket.setReviewerId(adminId);
+        approvalTicket.setReviewedAt(java.time.LocalDateTime.now());
+
+        courseApprovalRequestRepository.save(approvalTicket);
+        courseRepository.save(course);
+
+        log.info("Admin {} processed approval ticket {} with action: {}", adminId, requestId, action);
     }
 
 }
