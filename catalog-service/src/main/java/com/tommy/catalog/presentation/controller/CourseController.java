@@ -1,10 +1,9 @@
 package com.tommy.catalog.presentation.controller;
 
-import com.tommy.catalog.application.dto.request.CourseTaxonomyRequest;
-import com.tommy.catalog.application.dto.request.CreateCourseRequest;
-import com.tommy.catalog.application.dto.request.ProcessApprovalRequest;
-import com.tommy.catalog.application.dto.request.UpdateCourseRequest;
+import com.tommy.catalog.application.dto.request.*;
 import com.tommy.catalog.application.dto.response.ApiResponse;
+import com.tommy.catalog.application.dto.response.CourseApprovalDetailResponse;
+import com.tommy.catalog.application.dto.response.CourseApprovalResponse;
 import com.tommy.catalog.application.service.ICourseService;
 import com.tommy.catalog.domain.entity.Course;
 import com.tommy.common.exception.AppException;
@@ -153,5 +152,44 @@ public class CourseController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200, "Process course request successful", null));
+    }
+
+    // Get pending course requests
+    @GetMapping("/approvals/pending")
+    @RequireRole({"ADMIN"})
+    public ResponseEntity<ApiResponse<Page<CourseApprovalResponse>>> getPendingApprovals(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<CourseApprovalResponse> pendingList = courseService.getPendingApprovals(page, size);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "Get the list of courses waiting for successful approval", pendingList));
+    }
+
+    // Get detail course pending
+    @GetMapping("/approvals/{requestId}")
+    @RequireRole({"ADMIN"})
+    public ResponseEntity<ApiResponse<CourseApprovalDetailResponse>> getApprovalDetail(
+            @PathVariable UUID requestId) {
+
+        CourseApprovalDetailResponse detail = courseService.getApprovalDetail(requestId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "Get details of successful approval request", detail));
+    }
+
+    // Search publish course
+    @GetMapping("/p/search")
+    public ResponseEntity<ApiResponse<Page<Course>>> searchPublicCourses(
+            CourseSearchRequest request) {
+
+        Page<Course> courses = courseService.searchPublicCourses(request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "Search for successful course listings", courses));
     }
 }

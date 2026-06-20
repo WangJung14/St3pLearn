@@ -1,9 +1,8 @@
 package com.tommy.catalog.application.service;
 
-import com.tommy.catalog.application.dto.request.CourseTaxonomyRequest;
-import com.tommy.catalog.application.dto.request.CreateCourseRequest;
-import com.tommy.catalog.application.dto.request.ProcessApprovalRequest;
-import com.tommy.catalog.application.dto.request.UpdateCourseRequest;
+import com.tommy.catalog.application.dto.request.*;
+import com.tommy.catalog.application.dto.response.CourseApprovalDetailResponse;
+import com.tommy.catalog.application.dto.response.CourseApprovalResponse;
 import com.tommy.catalog.domain.entity.Course;
 import org.springframework.data.domain.Page;
 
@@ -24,4 +23,13 @@ public interface ICourseService {
 
     // Process Course Approval for ADMIN
     void processCourseApproval(UUID requestId, UUID adminId, ProcessApprovalRequest request);
+
+    // Get All pending course
+    Page<CourseApprovalResponse> getPendingApprovals(int page, int size);
+
+    // Get course details
+    CourseApprovalDetailResponse getApprovalDetail(UUID requestId);
+
+    //Search course
+    Page<Course> searchPublicCourses(CourseSearchRequest request);
 }

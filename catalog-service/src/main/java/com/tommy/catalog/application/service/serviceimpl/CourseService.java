@@ -1,15 +1,15 @@
 package com.tommy.catalog.application.service.serviceimpl;
 
-import com.tommy.catalog.application.dto.request.CourseTaxonomyRequest;
-import com.tommy.catalog.application.dto.request.CreateCourseRequest;
-import com.tommy.catalog.application.dto.request.ProcessApprovalRequest;
-import com.tommy.catalog.application.dto.request.UpdateCourseRequest;
+import com.tommy.catalog.application.dto.request.*;
+import com.tommy.catalog.application.dto.response.CourseApprovalDetailResponse;
+import com.tommy.catalog.application.dto.response.CourseApprovalResponse;
 import com.tommy.catalog.application.service.ICourseService;
 import com.tommy.catalog.domain.entity.Category;
 import com.tommy.catalog.domain.entity.Course;
 import com.tommy.catalog.domain.entity.CourseApprovalRequest;
 import com.tommy.catalog.domain.entity.Tag;
 import com.tommy.catalog.domain.enums.CourseStatus;
+import com.tommy.catalog.infrastructure.persistence.CourseSpecification;
 import com.tommy.common.exception.AppException;
 import com.tommy.common.exception.ErrorCode;
 import com.tommy.catalog.infrastructure.persistence.repository.*;
@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -285,6 +286,82 @@ public class CourseService implements ICourseService {
         courseRepository.save(course);
 
         log.info("Admin {} processed approval ticket {} with action: {}", adminId, requestId, action);
+    }
+
+    /*
+    * Get pending course approvals
+    * */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CourseApprovalResponse> getPendingApprovals(int page, int size) {
+        // Sort by ascending because ADMIN SHOULD approval first in first out
+        Pageable pageable = PageRequest.of(page, size, Sort.by("submittedAt").ascending());
+        return courseApprovalRequestRepository.findApprovalsByStatus("PENDING", pageable);
+    }
+
+    /*
+    * Get approval course Detail
+    * */
+    @Override
+    @Transactional(readOnly = true)
+    public CourseApprovalDetailResponse getApprovalDetail(UUID requestId) {
+
+        //1. Find ticket by id
+        CourseApprovalRequest request = courseApprovalRequestRepository.findById(requestId)
+                .orElseThrow(() -> new AppException(ErrorCode.APPROVAL_REQUEST_NOT_FOUND));
+
+        // 2. Get course detail
+        Course course = courseRepository.findById(request.getCourseId())
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // 3. Count the lesson of course
+        int lessonCount = courseLessonRepository.countLessonsByCourseId(course.getId());
+
+        // 4. return
+        return CourseApprovalDetailResponse.builder()
+                .approvalRequestId(request.getId())
+                .ticketStatus(request.getStatus())
+                .submittedBy(request.getSubmittedBy())
+                .submittedAt(request.getSubmittedAt())
+                .courseInfo(course)
+                .totalLessons(lessonCount)
+                .build();
+    }
+
+    /*
+    * Search course
+    * */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Course> searchPublicCourses(CourseSearchRequest request) {
+        // 1. The course muse be PUBLISHED
+        Specification<Course> spec = Specification.where(CourseSpecification.isPublished());
+
+        // 2. Check all filter conditions
+        if (org.springframework.util.StringUtils.hasText(request.getKeyword())) {
+            spec = spec.and(CourseSpecification.hasTitleLike(request.getKeyword()));
+        }
+
+        if (org.springframework.util.StringUtils.hasText(request.getLevel())) {
+            spec = spec.and(CourseSpecification.hasLevel(request.getLevel()));
+        }
+
+        if (request.getMinPrice() != null || request.getMaxPrice() != null) {
+            spec = spec.and(CourseSpecification.isPriceInRange(request.getMinPrice(), request.getMaxPrice()));
+        }
+
+        if (request.getCategoryId() != null) {
+            spec = spec.and(CourseSpecification.hasCategoryId(request.getCategoryId()));
+        }
+
+        // 3. Dynamic Sorting processing
+        Sort.Direction direction = Sort.Direction.fromString(request.getSortDir().toUpperCase());
+        Sort sort = Sort.by(direction, request.getSortBy());
+
+        // 4. Create Paging object
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+        return courseRepository.findAll(spec, pageable);
     }
 
 }
