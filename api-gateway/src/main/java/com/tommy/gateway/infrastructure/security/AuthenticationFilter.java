@@ -30,17 +30,14 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     private final List<String> publicEndpoints = List.of(
             "/api/auth/login",
             "/api/auth/register",
-            "/api/catalog/p/" // API xem profile công khai
+            "/api/catalog/p/",
+            "/api/courses/p/"// API xem profile công khai
     );
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
         HttpMethod method = exchange.getRequest().getMethod();
-        // 1. If it's a Public API, let it go
-        if (publicEndpoints.stream().anyMatch(path::startsWith)) {
-            return chain.filter(exchange);
-        }
 
         // Allow OPTIONS requests for CORS preflight
         if (HttpMethod.OPTIONS.equals(method)) {
@@ -48,10 +45,8 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         }
 
         // 2.Public gateway
-
-        if (path.startsWith("/api/courses")
-                && HttpMethod.GET.equals(method)
-                && !path.contains("/upload-signature")) {
+        boolean isPublic = publicEndpoints.stream().anyMatch(path::startsWith);
+        if (isPublic) {
             return chain.filter(exchange);
         }
 

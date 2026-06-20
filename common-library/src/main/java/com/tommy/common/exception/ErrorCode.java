@@ -23,7 +23,7 @@ public enum ErrorCode {
     COURSE_ACCESS_DENIED(403, "You do not have permission to access this course.", HttpStatus.FORBIDDEN),
     COURSE_CANNOT_BE_SUBMITTED(409, "Only courses with DRAFT or REJECTED status can be submitted.", HttpStatus.CONFLICT),
     COURSE_CONTENT_REQUIRED(400, "The course must contain at least one chapter and one lesson before submission.", HttpStatus.BAD_REQUEST),
-
+    COURSE_ALREADY_SUBMITTED(400, "This course has already been submitted yet",HttpStatus.CONFLICT),
     // Category errors
     CATEGORY_NOT_FOUND(404, "Category not found.", HttpStatus.NOT_FOUND),
     CATEGORY_ALREADY_EXISTS(409, "A category with this name already exists.", HttpStatus.CONFLICT),

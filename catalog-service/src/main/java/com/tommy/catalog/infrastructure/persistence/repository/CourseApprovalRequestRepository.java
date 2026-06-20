@@ -17,4 +17,7 @@ public interface CourseApprovalRequestRepository extends JpaRepository<CourseApp
             "JOIN Course c ON req.courseId = c.id " +
             "WHERE req.status = :status")
     Page<CourseApprovalResponse> findApprovalsByStatus(@Param("status") String status, Pageable pageable);
+
+    // Anti multi submit
+    boolean existsByCourseIdAndStatus(UUID courseId, String status);
 }

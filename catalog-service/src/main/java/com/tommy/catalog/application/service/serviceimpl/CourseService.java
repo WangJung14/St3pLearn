@@ -214,6 +214,12 @@ public class CourseService implements ICourseService {
             throw new AppException(ErrorCode.COURSE_CONTENT_REQUIRED);
         }
 
+        // 5. Block Race Condition , multi submitted
+        boolean hasPendingTicket = courseApprovalRequestRepository.existsByCourseIdAndStatus(courseId, "PENDING");
+        if (hasPendingTicket) {
+            log.warn("Course {} already has a PENDING ticket", courseId);
+            throw new AppException(ErrorCode.COURSE_ALREADY_SUBMITTED);
+        }
         // 5. Update status of course
         course.setStatus(CourseStatus.PENDING_REVIEW);
         courseRepository.save(course);
