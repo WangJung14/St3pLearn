@@ -3,6 +3,7 @@ package com.tommy.catalog.application.service;
 import com.tommy.catalog.application.dto.request.*;
 import com.tommy.catalog.application.dto.response.CourseApprovalDetailResponse;
 import com.tommy.catalog.application.dto.response.CourseApprovalResponse;
+import com.tommy.catalog.application.dto.response.CourseCardResponse;
 import com.tommy.catalog.domain.entity.Course;
 import org.springframework.data.domain.Page;
 
@@ -31,7 +32,7 @@ public interface ICourseService {
     CourseApprovalDetailResponse getApprovalDetail(UUID requestId);
 
     //Search course
-    Page<Course> searchPublicCourses(CourseSearchRequest request);
+    Page<CourseCardResponse> searchPublicCourses(CourseSearchRequest request);
 
     // Get a list of courses that instructor has owner
     Page<Course> getMyCourses(UUID instructorId ,int page, int size);

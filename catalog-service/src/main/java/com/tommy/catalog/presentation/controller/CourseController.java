@@ -4,6 +4,7 @@ import com.tommy.catalog.application.dto.request.*;
 import com.tommy.catalog.application.dto.response.ApiResponse;
 import com.tommy.catalog.application.dto.response.CourseApprovalDetailResponse;
 import com.tommy.catalog.application.dto.response.CourseApprovalResponse;
+import com.tommy.catalog.application.dto.response.CourseCardResponse;
 import com.tommy.catalog.application.service.ICourseService;
 import com.tommy.catalog.domain.entity.Course;
 import com.tommy.common.exception.AppException;
@@ -183,14 +184,14 @@ public class CourseController {
 
     // Search publish course
     @GetMapping("/p/search")
-    public ResponseEntity<ApiResponse<Page<Course>>> searchPublicCourses(
+    public ResponseEntity<ApiResponse<Page<CourseCardResponse>>> searchPublicCourses(
             CourseSearchRequest request) {
 
-        Page<Course> courses = courseService.searchPublicCourses(request);
+        Page<CourseCardResponse> dynamicCourses = courseService.searchPublicCourses(request);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success(200, "Search for successful course listings", courses));
+                .body(ApiResponse.success(200, "Search for successful course listings", dynamicCourses));
     }
 
     // Get course by instructor_id

@@ -3,6 +3,7 @@ package com.tommy.catalog.application.service.serviceimpl;
 import com.tommy.catalog.application.dto.request.*;
 import com.tommy.catalog.application.dto.response.CourseApprovalDetailResponse;
 import com.tommy.catalog.application.dto.response.CourseApprovalResponse;
+import com.tommy.catalog.application.dto.response.CourseCardResponse;
 import com.tommy.catalog.application.service.ICourseService;
 import com.tommy.catalog.domain.entity.Category;
 import com.tommy.catalog.domain.entity.Course;
@@ -339,7 +340,7 @@ public class CourseService implements ICourseService {
     * */
     @Override
     @Transactional(readOnly = true)
-    public Page<Course> searchPublicCourses(CourseSearchRequest request) {
+    public Page<CourseCardResponse> searchPublicCourses(CourseSearchRequest request) {
         // 1. The course muse be PUBLISHED
         Specification<Course> spec = Specification.where(CourseSpecification.isPublished());
 
@@ -363,11 +364,21 @@ public class CourseService implements ICourseService {
         // 3. Dynamic Sorting processing
         Sort.Direction direction = Sort.Direction.fromString(request.getSortDir().toUpperCase());
         Sort sort = Sort.by(direction, request.getSortBy());
-
-        // 4. Create Paging object
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
-        return courseRepository.findAll(spec, pageable);
+        // 4. Create Paging object
+        Page<Course> coursePage = courseRepository.findAll(spec, pageable);
+
+        return coursePage.map(course -> CourseCardResponse.builder()
+                .id(course.getId())
+                .title(course.getTitle())
+                .slug(course.getSlug())
+                .thumbnailUrl(course.getThumbnailUrl())
+                .price(course.getPrice())
+                .level(course.getLevel())
+                .instructorId(course.getInstructorId())
+                .build()
+        );
     }
 
     /*
