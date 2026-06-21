@@ -4,7 +4,9 @@ import com.tommy.catalog.application.dto.request.LessonContentRequest;
 import com.tommy.catalog.application.service.ILessonContentService;
 import com.tommy.catalog.domain.entity.Course;
 import com.tommy.catalog.domain.entity.CourseChapter;
+import com.tommy.catalog.domain.entity.CourseLesson;
 import com.tommy.catalog.domain.entity.LessonContent;
+import com.tommy.catalog.infrastructure.persistence.repository.CourseLessonRepository;
 import com.tommy.common.exception.AppException;
 import com.tommy.common.exception.ErrorCode;
 import com.tommy.catalog.infrastructure.persistence.repository.CourseChapterRepository;
@@ -25,6 +27,7 @@ public class LessonContentService implements ILessonContentService {
     private final CourseChapterRepository courseChapterRepository;
     private final CourseRepository courseRepository;
     private final LessonContentRepository contentRepository;
+    private final CourseLessonRepository courseLessonRepository;
 
     @Override
     @Transactional
@@ -35,18 +38,22 @@ public class LessonContentService implements ILessonContentService {
 
         // 2. Check if this lessonId already contains any content;
         // if it does, then the action should be an Overwrite (Update)
-        LessonContent content =  contentRepository.findById(lessonId)
-                .orElse(new  LessonContent());
+        CourseLesson courseLesson = courseLessonRepository.findById(lessonId)
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
 
-        content.setLessonId(lessonId);
+        // 3. Find old content
+        LessonContent content = contentRepository.findByLessonId(lessonId)
+                .orElse(new LessonContent());
+
+        content.setLesson(courseLesson);
+
         content.setContentType(request.getContentType());
         content.setStorageUrl(request.getStorageUrl());
         content.setFileSize(request.getFileSize());
         content.setChecksum(request.getChecksum());
         content.setMetadata(request.getMetadata());
 
-        LessonContent saved =  contentRepository.save(content);
-        return saved;
+        return contentRepository.save(content);
     }
 
     /*

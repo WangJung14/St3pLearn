@@ -25,14 +25,18 @@ public class LessonContent {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "lesson_id", nullable = false)
-    private UUID lessonId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lesson_id", nullable = false)
+    private CourseLesson lesson;
 
     @Column(name = "content_type", nullable = false, length = 50)
     private String contentType; // VIDEO_CLOUDINARY, PDF_SUPABASE, YOUTUBE_EMBED...
 
     @Column(name = "storage_url", nullable = false, columnDefinition = "TEXT")
     private String storageUrl;
+
+    @Column(name = "text_content", columnDefinition = "TEXT")
+    private String textContent;
 
     @Column(name = "file_size")
     private Long fileSize; // Calculate by byte

@@ -14,6 +14,7 @@ public interface CourseLessonRepository extends JpaRepository<CourseLesson, UUID
 
     List<CourseLesson> findByChapterIdOrderByDisplayOrderAsc(UUID chapterId);
 
+
     @Query("SELECT COALESCE(MAX(l.displayOrder), 0) FROM CourseLesson l WHERE l.chapterId = :chapterId")
     Integer findMaxDisplayOrderByChapterId(@Param("chapterId") UUID chapterId);
 

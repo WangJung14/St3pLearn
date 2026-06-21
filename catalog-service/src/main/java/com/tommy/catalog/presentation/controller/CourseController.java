@@ -1,10 +1,7 @@
 package com.tommy.catalog.presentation.controller;
 
 import com.tommy.catalog.application.dto.request.*;
-import com.tommy.catalog.application.dto.response.ApiResponse;
-import com.tommy.catalog.application.dto.response.CourseApprovalDetailResponse;
-import com.tommy.catalog.application.dto.response.CourseApprovalResponse;
-import com.tommy.catalog.application.dto.response.CourseCardResponse;
+import com.tommy.catalog.application.dto.response.*;
 import com.tommy.catalog.application.service.ICourseService;
 import com.tommy.catalog.domain.entity.Course;
 import com.tommy.common.exception.AppException;
@@ -235,5 +232,17 @@ public class CourseController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200, "Course published successfully! Students can now find this course.", null));
+    }
+
+    // Get public course detail
+    @GetMapping("/p/{slug}")
+    public ResponseEntity<ApiResponse<CourseDetailPublicResponse>> getPublicCourseDetail(
+            @PathVariable String slug) {
+
+        CourseDetailPublicResponse courseDetail = courseService.getPublicCourseDetail(slug);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "Get course details successfully", courseDetail));
     }
 }

@@ -1,14 +1,9 @@
 package com.tommy.catalog.application.service.serviceimpl;
 
 import com.tommy.catalog.application.dto.request.*;
-import com.tommy.catalog.application.dto.response.CourseApprovalDetailResponse;
-import com.tommy.catalog.application.dto.response.CourseApprovalResponse;
-import com.tommy.catalog.application.dto.response.CourseCardResponse;
+import com.tommy.catalog.application.dto.response.*;
 import com.tommy.catalog.application.service.ICourseService;
-import com.tommy.catalog.domain.entity.Category;
-import com.tommy.catalog.domain.entity.Course;
-import com.tommy.catalog.domain.entity.CourseApprovalRequest;
-import com.tommy.catalog.domain.entity.Tag;
+import com.tommy.catalog.domain.entity.*;
 import com.tommy.catalog.domain.enums.CourseStatus;
 import com.tommy.catalog.infrastructure.persistence.CourseSpecification;
 import com.tommy.common.exception.AppException;
@@ -39,6 +34,7 @@ public class CourseService implements ICourseService {
     private final TagRepository tagRepository;
     private final CourseLessonRepository  courseLessonRepository;
     private final CourseApprovalRequestRepository courseApprovalRequestRepository;
+    private final CourseChapterRepository courseChapterRepository;
 
     @Override
     @Transactional
@@ -453,4 +449,58 @@ public class CourseService implements ICourseService {
         log.info("Instructor {} successfully published course {}", instructorId, courseId);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public CourseDetailPublicResponse getPublicCourseDetail(String slug) {
+        // 1. Find course by slug , just get PUBLISH COURSE
+        Course course = courseRepository.findBySlugAndStatus(slug, CourseStatus.PUBLISHED)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // 2. Get all chapter of course
+        List<CourseChapter> chapters = courseChapterRepository.findByCourseIdOrderByDisplayOrderAsc(course.getId());
+
+        // 3. Create list of chapter DTOs
+        List<ChapterPublicDto> chapterDtos = chapters.stream().map(chapter -> {
+
+            // Get all lesson of this chapter
+            List<CourseLesson> lessons = courseLessonRepository.findByChapterIdOrderByDisplayOrderAsc(chapter.getId());
+
+            // Mapping and Masking lesson
+            List<LessonPublicDto> lessonDtos = lessons.stream().map(lesson -> {
+                LessonPublicDto dto = LessonPublicDto.builder()
+                        .id(lesson.getId())
+                        .title(lesson.getTitle())
+                        .orderIndex(lesson.getDisplayOrder())
+                        .duration(lesson.getDurationSeconds())
+                        .isPreview(lesson.getIsPreview())
+                        .build();
+                if(lesson.getIsPreview()){
+                    if (lesson.getContent() != null) {
+                        dto.setVideoUrl(lesson.getContent().getStorageUrl());
+                    }
+                }else{
+                    dto.setVideoUrl(null);
+                }
+                return dto;
+        }).toList();
+            return ChapterPublicDto.builder()
+                    .id(chapter.getId())
+                    .title(chapter.getTitle())
+                    .orderIndex(chapter.getDisplayOrder())
+                    .lessons(lessonDtos)
+                    .build();
+        }).toList();
+
+        return CourseDetailPublicResponse.builder()
+                .id(course.getId())
+                .title(course.getTitle())
+                .slug(course.getSlug())
+                .description(course.getShortDescription())
+                .thumbnailUrl(course.getThumbnailUrl())
+                .price(course.getPrice())
+                .level(course.getLevel())
+                .instructorId(course.getInstructorId())
+                .curriculum(chapterDtos)
+                .build();
+    }
 }

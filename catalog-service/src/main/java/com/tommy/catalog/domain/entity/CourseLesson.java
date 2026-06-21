@@ -42,6 +42,9 @@ public class CourseLesson {
     @Column(name = "display_order", nullable = false)
     private Integer displayOrder;
 
+    @OneToOne(mappedBy = "lesson", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private LessonContent content;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -4,6 +4,7 @@ import com.tommy.catalog.application.dto.request.*;
 import com.tommy.catalog.application.dto.response.CourseApprovalDetailResponse;
 import com.tommy.catalog.application.dto.response.CourseApprovalResponse;
 import com.tommy.catalog.application.dto.response.CourseCardResponse;
+import com.tommy.catalog.application.dto.response.CourseDetailPublicResponse;
 import com.tommy.catalog.domain.entity.Course;
 import org.springframework.data.domain.Page;
 
@@ -42,4 +43,7 @@ public interface ICourseService {
 
     // Publish course
     void publishCourse(UUID courseId, UUID instructorId);
+
+    // Get public Course Detail
+    CourseDetailPublicResponse getPublicCourseDetail(String slug);
 }
