@@ -33,6 +33,7 @@ public class WishlistService implements IWishlistService {
     @Override
     @Transactional
     public void saveCourseToWishlist(UUID studentId, UUID courseId) {
+
         // 1. Make sure course exists and is PUBLISHED
         Course course = courseRepository.findById(courseId)
                 .filter(c -> CourseStatus.PUBLISHED.equals(c.getStatus()))

@@ -28,7 +28,7 @@ public class WishlistController {
             @RequestHeader("X-User-Id") UUID studentId)
     {
         log.info("Student {} requested to save course {} to wishlist", studentId, courseId);
-        wishlistService.saveCourseToWishlist(courseId, studentId);
+        wishlistService.saveCourseToWishlist(studentId,courseId);
 
         return ResponseEntity.ok(ApiResponse.success(200, "The course has been saved to your wishlist", null));
     }
@@ -41,7 +41,7 @@ public class WishlistController {
             @RequestHeader("X-User-Id") UUID studentId)
     {
         log.info("Student {} requested to remove course {} from wishlist", studentId, courseId);
-        wishlistService.removeCourseFromWishlist(courseId, studentId);
+        wishlistService.removeCourseFromWishlist(studentId,courseId);
 
         return ResponseEntity.ok(ApiResponse.success(200, "Course has been cancelled", null));
     }
