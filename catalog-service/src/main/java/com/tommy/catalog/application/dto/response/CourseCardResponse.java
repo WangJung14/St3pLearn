@@ -19,4 +19,6 @@ public class CourseCardResponse {
     private BigDecimal price;
     private String level;
     private UUID instructorId;
+    private BigDecimal avgRating;
+    private Integer totalReviews;
 }

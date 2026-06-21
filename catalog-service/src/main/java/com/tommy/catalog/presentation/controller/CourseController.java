@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 import com.tommy.common.security.RequireRole;
-import org.springframework.web.servlet.function.EntityResponse;
+
 
 @RestController
 @RequestMapping("/api/courses")
