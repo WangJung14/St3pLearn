@@ -12,6 +12,7 @@ import com.tommy.catalog.infrastructure.persistence.repository.*;
 import com.tommy.catalog.util.SlugUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -451,6 +452,7 @@ public class CourseService implements ICourseService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "courseDetail", key = "#slug")
     public CourseDetailPublicResponse getPublicCourseDetail(String slug) {
         // 1. Find course by slug , just get PUBLISH COURSE
         Course course = courseRepository.findBySlugAndStatus(slug, CourseStatus.PUBLISHED)
