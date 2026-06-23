@@ -10,8 +10,11 @@ import com.tommy.common.exception.AppException;
 import com.tommy.common.exception.ErrorCode;
 import com.tommy.catalog.infrastructure.persistence.repository.*;
 import com.tommy.catalog.util.SlugUtil;
+import com.tommy.catalog.infrastructure.messaging.RabbitMQConfig;
+import com.tommy.common.event.CourseStatusChangedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,6 +39,7 @@ public class CourseService implements ICourseService {
     private final CourseLessonRepository  courseLessonRepository;
     private final CourseApprovalRequestRepository courseApprovalRequestRepository;
     private final CourseChapterRepository courseChapterRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     @Transactional
@@ -67,6 +71,8 @@ public class CourseService implements ICourseService {
         // 4. Save to database
         Course savedCourse = courseRepository.save(course);
         log.info("Teacher {} created new draft course: {}", instructorId, savedCourse.getSlug());
+
+        publishStatusChangeEvent(savedCourse);
 
         return savedCourse;
     }
@@ -145,6 +151,8 @@ public class CourseService implements ICourseService {
 
         courseRepository.save(course);
         log.info("Instructor {} archived course: {}", instructorId, courseId);
+        
+        publishStatusChangeEvent(course);
     }
 
     /*
@@ -221,6 +229,8 @@ public class CourseService implements ICourseService {
         // 5. Update status of course
         course.setStatus(CourseStatus.PENDING_REVIEW);
         courseRepository.save(course);
+        
+        publishStatusChangeEvent(course);
 
         // 6. Create ticket for admin
         CourseApprovalRequest approvalRequest = CourseApprovalRequest.builder()
@@ -288,6 +298,8 @@ public class CourseService implements ICourseService {
 
         courseApprovalRequestRepository.save(approvalTicket);
         courseRepository.save(course);
+        
+        publishStatusChangeEvent(course);
 
         log.info("Admin {} processed approval ticket {} with action: {}", adminId, requestId, action);
     }
@@ -419,6 +431,8 @@ public class CourseService implements ICourseService {
 
         courseRepository.save(course);
         courseApprovalRequestRepository.save(pendingTicket);
+        
+        publishStatusChangeEvent(course);
 
         log.info("Instructor {} successfully canceled the approval request for course {}", instructorId, courseId);
     }
@@ -446,6 +460,8 @@ public class CourseService implements ICourseService {
         course.setStatus(CourseStatus.PUBLISHED);
 
         courseRepository.save(course);
+        
+        publishStatusChangeEvent(course);
 
         log.info("Instructor {} successfully published course {}", instructorId, courseId);
     }
@@ -504,5 +520,25 @@ public class CourseService implements ICourseService {
                 .instructorId(course.getInstructorId())
                 .curriculum(chapterDtos)
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void migrateCourseStatuses() {
+        List<Course> allCourses = courseRepository.findAll();
+        for (Course course : allCourses) {
+            publishStatusChangeEvent(course);
+        }
+        log.info("Migrated {} course statuses to Learning Service", allCourses.size());
+    }
+
+    private void publishStatusChangeEvent(Course course) {
+        try {
+            CourseStatusChangedEvent event = new CourseStatusChangedEvent(course.getId(), course.getStatus().name());
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.COURSE_STATUS_ROUTING_KEY, event);
+            log.info("Published status change event for course {}: {}", course.getId(), course.getStatus());
+        } catch (Exception e) {
+            log.error("Failed to publish status change event for course {}: {}", course.getId(), e.getMessage());
+        }
     }
 }

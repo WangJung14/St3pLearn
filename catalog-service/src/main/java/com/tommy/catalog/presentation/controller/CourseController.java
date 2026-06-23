@@ -245,4 +245,12 @@ public class CourseController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200, "Get course details successfully", courseDetail));
     }
+
+    // Migration API to sync all courses to Learning Service
+    @PostMapping("/admin/migrate-status")
+    @RequireRole({"ADMIN"})
+    public ResponseEntity<ApiResponse<Void>> migrateCourseStatuses() {
+        courseService.migrateCourseStatuses();
+        return ResponseEntity.ok(ApiResponse.success(200, "Successfully migrated all course statuses", null));
+    }
 }

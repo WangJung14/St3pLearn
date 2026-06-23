@@ -46,4 +46,7 @@ public interface ICourseService {
 
     // Get public Course Detail
     CourseDetailPublicResponse getPublicCourseDetail(String slug);
+
+    // Migrate course status to Learning Service
+    void migrateCourseStatuses();
 }

@@ -25,6 +25,7 @@ public enum ErrorCode {
     COURSE_CONTENT_REQUIRED(400, "The course must contain at least one chapter and one lesson before submission.", HttpStatus.BAD_REQUEST),
     COURSE_ALREADY_SUBMITTED(400, "This course has already been submitted yet",HttpStatus.CONFLICT),
     COURSE_NOT_APPROVED_PUBLISH(400,"This course has not been reviewed. Only approved courses can be published",HttpStatus.BAD_REQUEST),
+    COURSE_NOT_PUBLISHED(400, "This course is not published yet.", HttpStatus.BAD_REQUEST),
 
     // Category errors
     CATEGORY_NOT_FOUND(404, "Category not found.", HttpStatus.NOT_FOUND),
@@ -54,8 +55,9 @@ public enum ErrorCode {
     REVIEW_NOTE_REQUIRED(400, "A review note is required when rejecting a course.", HttpStatus.BAD_REQUEST),
 
 
-
-
+    /// LEARNING ERROR
+    // Enroll Course
+    ENROLLMENT_EXISTS(400,"This enrollment already exists.", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

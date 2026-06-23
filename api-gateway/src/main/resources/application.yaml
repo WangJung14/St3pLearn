@@ -23,6 +23,11 @@ spring:
           predicates:
             - Path=/api/catalog/**, /api/courses/**, /api/categories/**, /api/wishlists/**
 
+        - id: learning-service-route
+          uri: lb://learning-service
+          predicates:
+            - Path=/api/enrollments/**
+
 eureka:
   client:
     service-url:
