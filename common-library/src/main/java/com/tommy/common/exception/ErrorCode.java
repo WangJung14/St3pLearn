@@ -45,6 +45,7 @@ public enum ErrorCode {
     REVIEW_NOT_FOUND(404, "Review not found.", HttpStatus.NOT_FOUND),
     REVIEW_ALREADY_EXISTS(409, "You have already submitted a review for this course.", HttpStatus.CONFLICT),
     REVIEW_NOT_ALLOWED(403, "Only enrolled students can review this course.", HttpStatus.FORBIDDEN),
+    REPLY_ALREADY_EXISTS(400,"The reply already exists", HttpStatus.BAD_REQUEST),
 
     // Approval course error
     APPROVAL_REQUEST_NOT_FOUND(404, "Approval request not found.", HttpStatus.NOT_FOUND),
@@ -52,7 +53,7 @@ public enum ErrorCode {
     INVALID_APPROVAL_ACTION(400, "Invalid approval action. Only APPROVE or REJECT is allowed.", HttpStatus.BAD_REQUEST),
     REVIEW_NOTE_REQUIRED(400, "A review note is required when rejecting a course.", HttpStatus.BAD_REQUEST),
 
-    //
+
 
 
     ;

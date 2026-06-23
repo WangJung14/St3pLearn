@@ -1,6 +1,8 @@
 package com.tommy.catalog.presentation.controller;
 
+import com.tommy.catalog.application.dto.request.ReplyReviewRequest;
 import com.tommy.catalog.application.dto.request.SubmitReviewRequest;
+import com.tommy.catalog.application.dto.response.ReviewReplyResponse;
 import com.tommy.catalog.application.dto.response.ReviewResponse;
 import com.tommy.catalog.application.service.ICourseReviewService;
 import com.tommy.common.response.ApiResponse;
@@ -82,5 +84,23 @@ public class CourseReviewController {
         courseReviewService.deleteReview(studentId, courseId, reviewId);
 
         return ResponseEntity.ok(ApiResponse.success(200, "Delete review successfully", null));
+    }
+
+    // Teacher reply review
+    @PostMapping("/{courseId}/reviews/{reviewId}/reply")
+    @RequireRole({"TEACHER", "ADMIN"})
+    public ResponseEntity<ApiResponse<ReviewReplyResponse>> replyToReview(
+            @PathVariable UUID courseId,
+            @PathVariable UUID reviewId,
+            @RequestHeader("X-User-Id") UUID teacherId,
+            @Valid @RequestBody ReplyReviewRequest request) {
+
+        log.info("Instructor {} replying to review {} for Course {}", teacherId, reviewId, courseId);
+
+        ReviewReplyResponse response = courseReviewService.replyToReview(teacherId, courseId, reviewId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(201, "Feedback on successful evaluation", response));
     }
 }

@@ -1,14 +1,18 @@
 package com.tommy.catalog.application.service.serviceimpl;
 
 
+import com.tommy.catalog.application.dto.request.ReplyReviewRequest;
 import com.tommy.catalog.application.dto.request.SubmitReviewRequest;
+import com.tommy.catalog.application.dto.response.ReviewReplyResponse;
 import com.tommy.catalog.application.dto.response.ReviewResponse;
 import com.tommy.catalog.application.service.ICourseReviewService;
 import com.tommy.catalog.domain.entity.Course;
 import com.tommy.catalog.domain.entity.CourseReview;
+import com.tommy.catalog.domain.entity.ReviewReply;
 import com.tommy.catalog.domain.enums.CourseStatus;
 import com.tommy.catalog.infrastructure.persistence.repository.CourseRepository;
 import com.tommy.catalog.infrastructure.persistence.repository.CourseReviewRepository;
+import com.tommy.catalog.infrastructure.persistence.repository.ReviewReplyRepository;
 import com.tommy.catalog.infrastructure.persistence.repository.StudentEnrolledCourseRepository;
 import com.tommy.common.exception.AppException;
 import com.tommy.common.exception.ErrorCode;
@@ -31,6 +35,7 @@ public class CousreReviewService implements ICourseReviewService {
     private final CourseReviewRepository reviewRepository;
     private final CourseRepository courseRepository;
     private final StudentEnrolledCourseRepository enrolledCourseRepository;
+    private final ReviewReplyRepository replyRepository;
 
     /*
     * Create review course
@@ -202,6 +207,48 @@ public class CousreReviewService implements ICourseReviewService {
         courseRepository.save(course);
 
         reviewRepository.delete(review);
+    }
+
+    @Override
+    @Transactional
+    public ReviewReplyResponse replyToReview(UUID teacherId, UUID courseId, UUID reviewId, ReplyReviewRequest request) {
+        // 1. Check if review exist and matches course
+        CourseReview review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
+
+        if (!review.getCourseId().equals(courseId)) {
+            throw new AppException(ErrorCode.COURSE_NOT_FOUND);
+        }
+
+        // 2.Only the course instructor is allowed to reply
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        if (!course.getInstructorId().equals(teacherId)) {
+            throw new AppException(ErrorCode.FORBIDDEN_ROLE);
+        }
+
+        // 3. Each review can only be answered once
+        if (replyRepository.findByReviewId(reviewId).isPresent()) {
+            throw new AppException(ErrorCode.REVIEW_ALREADY_EXISTS);
+        }
+
+        // 4. save
+        ReviewReply reply = ReviewReply.builder()
+                .reviewId(reviewId)
+                .authorId(teacherId)
+                .content(request.getContent())
+                .build();
+
+        replyRepository.save(reply);
+
+        return ReviewReplyResponse.builder()
+                .id(reply.getId())
+                .reviewId(reply.getReviewId())
+                .authorId(reply.getAuthorId())
+                .content(reply.getContent())
+                .createdAt(reply.getCreatedAt())
+                .build();
     }
 
 

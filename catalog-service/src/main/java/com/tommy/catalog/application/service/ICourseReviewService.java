@@ -1,6 +1,8 @@
 package com.tommy.catalog.application.service;
 
+import com.tommy.catalog.application.dto.request.ReplyReviewRequest;
 import com.tommy.catalog.application.dto.request.SubmitReviewRequest;
+import com.tommy.catalog.application.dto.response.ReviewReplyResponse;
 import com.tommy.catalog.application.dto.response.ReviewResponse;
 
 import org.springframework.data.domain.Page;
@@ -21,5 +23,8 @@ public interface ICourseReviewService {
 
     // delete review course for student
     void deleteReview(UUID studentId, UUID courseId, UUID reviewId);
+
+    // Teacher reply review
+    ReviewReplyResponse replyToReview(UUID teacherId, UUID courseId, UUID reviewId, ReplyReviewRequest request);
 
 }
