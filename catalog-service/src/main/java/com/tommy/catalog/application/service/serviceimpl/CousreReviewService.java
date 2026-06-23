@@ -14,6 +14,8 @@ import com.tommy.common.exception.AppException;
 import com.tommy.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +31,10 @@ public class CousreReviewService implements ICourseReviewService {
     private final CourseReviewRepository reviewRepository;
     private final CourseRepository courseRepository;
     private final StudentEnrolledCourseRepository enrolledCourseRepository;
+
+    /*
+    * Create review course
+    * */
 
     @Override
     @Transactional
@@ -89,6 +95,113 @@ public class CousreReviewService implements ICourseReviewService {
                 .rating(review.getRating())
                 .reviewText(review.getReviewText())
                 .build();
+    }
+
+    /*
+    * View all review course
+    * */
+    @Override
+    public Page<ReviewResponse> getCourseReviews(UUID courseId, Pageable pageable) {
+        return reviewRepository.findByCourseIdOrderByCreatedAtDesc(courseId, pageable)
+                .map(review -> ReviewResponse.builder()
+                        .id(review.getId())
+                        .studentId(review.getStudentId())
+                        .rating(review.getRating())
+                        .reviewText(review.getReviewText())
+                        .createdAt(review.getCreatedAt())
+                        .updatedAt(review.getUpdatedAt())
+                        .build());
+    }
+
+    /*
+    * User update review course
+    * */
+    @Override
+    @Transactional
+    public ReviewResponse updateReview(UUID studentId, UUID courseId, UUID reviewId, SubmitReviewRequest request) {
+        // 1. Find review by id
+        CourseReview review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
+
+        if (!review.getStudentId().equals(studentId) || !review.getCourseId().equals(courseId)) {
+            throw new AppException(ErrorCode.FORBIDDEN_ROLE);
+        }
+
+        // 2. Lock the course entry to recalculate your score.
+        Course course = courseRepository.findByIdForUpdate(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // 3. Ccoring algorithm when updated
+        BigDecimal total = BigDecimal.valueOf(course.getTotalReviews());
+        BigDecimal currentAvg = course.getAvgRating();
+        BigDecimal oldRating = BigDecimal.valueOf(review.getRating());
+        BigDecimal newRating = BigDecimal.valueOf(request.getRating());
+
+        // Current total score = Avg * Total
+        BigDecimal totalScore = currentAvg.multiply(total);
+        // New total score  = Old total score - old user score + new user score
+        BigDecimal newTotalScore = totalScore.subtract(oldRating).add(newRating);
+        // New average rating (Number of reviews remains the same)
+        BigDecimal newAvgRating = newTotalScore.divide(total, 2, RoundingMode.HALF_UP);
+
+        // 4. Save
+        course.setAvgRating(newAvgRating);
+        courseRepository.save(course);
+
+        review.setRating(request.getRating());
+        review.setReviewText(request.getReviewText());
+        reviewRepository.save(review);
+
+        return ReviewResponse.builder()
+                .id(review.getId())
+                .studentId(review.getStudentId())
+                .rating(review.getRating())
+                .reviewText(review.getReviewText())
+                .createdAt(review.getCreatedAt())
+                .updatedAt(review.getUpdatedAt())
+                .build();
+    }
+
+    /*
+    * User delete review course
+    * */
+    @Override
+    @Transactional
+    public void deleteReview(UUID studentId, UUID courseId, UUID reviewId) {
+        // 1. find review and check role
+        CourseReview review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        if (!review.getStudentId().equals(studentId) || !review.getCourseId().equals(courseId)) {
+            throw new AppException(ErrorCode.FORBIDDEN_ROLE);
+        }
+
+        // 2.Lock the course entry to recalculate your score
+        Course course = courseRepository.findByIdForUpdate(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+
+        int newTotalCount = course.getTotalReviews() - 1;
+        BigDecimal newAvgRating = BigDecimal.ZERO;
+
+        if (newTotalCount > 0) {
+            BigDecimal total = BigDecimal.valueOf(course.getTotalReviews());
+            BigDecimal currentAvg = course.getAvgRating();
+            BigDecimal deletedRating = BigDecimal.valueOf(review.getRating());
+
+
+            BigDecimal totalScore = currentAvg.multiply(total);
+
+            BigDecimal newTotalScore = totalScore.subtract(deletedRating);
+
+            newAvgRating = newTotalScore.divide(BigDecimal.valueOf(newTotalCount), 2, RoundingMode.HALF_UP);
+        }
+
+        course.setTotalReviews(newTotalCount);
+        course.setAvgRating(newAvgRating);
+        courseRepository.save(course);
+
+        reviewRepository.delete(review);
     }
 
 
