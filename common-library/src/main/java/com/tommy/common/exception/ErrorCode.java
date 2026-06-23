@@ -51,6 +51,10 @@ public enum ErrorCode {
     INVALID_TICKET_STATUS(400, "This approval request has already been processed.", HttpStatus.BAD_REQUEST),
     INVALID_APPROVAL_ACTION(400, "Invalid approval action. Only APPROVE or REJECT is allowed.", HttpStatus.BAD_REQUEST),
     REVIEW_NOTE_REQUIRED(400, "A review note is required when rejecting a course.", HttpStatus.BAD_REQUEST),
+
+    //
+
+
     ;
 
     private final int code;
