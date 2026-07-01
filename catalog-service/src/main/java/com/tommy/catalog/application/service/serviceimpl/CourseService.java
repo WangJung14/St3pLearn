@@ -6,6 +6,7 @@ import com.tommy.catalog.application.service.ICourseService;
 import com.tommy.catalog.domain.entity.*;
 import com.tommy.catalog.domain.enums.CourseStatus;
 import com.tommy.catalog.infrastructure.persistence.CourseSpecification;
+import com.tommy.common.event.CoursePublishedEvent;
 import com.tommy.common.exception.AppException;
 import com.tommy.common.exception.ErrorCode;
 import com.tommy.catalog.infrastructure.persistence.repository.*;
@@ -24,6 +25,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -458,11 +460,41 @@ public class CourseService implements ICourseService {
 
         // 4. Change status to PUBLISHED
         course.setStatus(CourseStatus.PUBLISHED);
-
         courseRepository.save(course);
-        
-        publishStatusChangeEvent(course);
 
+        // 5. Get the list of Chapters sorted by order
+        int totalLesson = 0;
+        int totalDuring = 0;
+        List<UUID> orderedLessonIds = new ArrayList<>();
+
+        List<CourseChapter> chapters = courseChapterRepository.findByCourseIdOrderByDisplayOrderAsc(course.getId());
+        for(CourseChapter chapter : chapters) {
+            List<CourseLesson> lessons = courseLessonRepository.findByChapterIdOrderByDisplayOrderAsc(chapter.getId());
+            // Get the arranged list of Lessons of each Chapter
+            for(CourseLesson lesson : lessons) {
+                totalLesson++;
+                totalDuring += (lesson.getDurationSeconds() != null ? lesson.getDurationSeconds() : 0);
+                orderedLessonIds.add(lesson.getId());
+            }
+        }
+
+        // 6. Push event to learning service
+        try{
+            CoursePublishedEvent event = new CoursePublishedEvent(
+                    course.getId(),
+                    course.getStatus().name(),
+                    totalLesson,
+                    totalDuring,
+                    orderedLessonIds
+            );
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.EXCHANGE_NAME,
+                    RabbitMQConfig.COURSE_PUBLISHED_ROUTING_KEY,
+                    event
+            );
+        }catch (AppException e){
+            log.error("Failed to publish CoursePublishedEvent for course {}: {}", course.getId(), e.getMessage());
+        }
         log.info("Instructor {} successfully published course {}", instructorId, courseId);
     }
 

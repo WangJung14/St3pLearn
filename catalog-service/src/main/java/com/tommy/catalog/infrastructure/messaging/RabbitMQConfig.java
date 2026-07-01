@@ -11,6 +11,7 @@ public class RabbitMQConfig {
 
     public static final String EXCHANGE_NAME = "course.events.exchange";
     public static final String COURSE_STATUS_ROUTING_KEY = "course.status.changed";
+    public static final String COURSE_PUBLISHED_ROUTING_KEY = "course.published.key";
 
     @Bean
     public TopicExchange courseEventsExchange() {
