@@ -13,6 +13,10 @@ import com.tommy.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +33,10 @@ public class EnrollmentService implements IEnrollmentService {
     private static final String EXCHANGE_NAME = "course.events.exchange";
     private static final String ROUTING_KEY = "course.enrolled.key";
 
+
+    /*
+    * EnrollCourse
+    * */
     @Override
     @Transactional
     public EnrollmentResponse enrollCourse(UUID studentId, EnrollCourseRequest request) {
@@ -72,5 +80,26 @@ public class EnrollmentService implements IEnrollmentService {
                 .progressPercent(enrollment.getProgressPercent())
                 .enrolledAt(enrollment.getEnrolledAt())
                 .build();
+    }
+
+    /*
+    * View all course enrolled
+    * */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<EnrollmentResponse> getMyEnrolledCourses(UUID studentId, int page, int size) {
+        log.info("Fetching enrolled courses for student: {}", studentId);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("enrolledAt").descending());
+
+        Page<Enrollment> enrollments = enrollmentRepository.findByStudentId(studentId, pageable);
+
+        return enrollments.map(enrollment -> EnrollmentResponse.builder()
+                .id(enrollment.getId())
+                .studentId(enrollment.getStudentId())
+                .courseId(enrollment.getCourseId())
+                .status(enrollment.getStatus())
+                .progressPercent(enrollment.getProgressPercent())
+                .enrolledAt(enrollment.getEnrolledAt())
+                .build());
     }
 }

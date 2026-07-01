@@ -8,6 +8,7 @@ import com.tommy.common.security.RequireRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class EnrollmentController {
     private final IEnrollmentService enrollmentService;
 
+    // enroll course
     @PostMapping
     @RequireRole({"STUDENT"})
     public ResponseEntity<ApiResponse<EnrollmentResponse>> enrollCourse(
@@ -34,5 +36,21 @@ public class EnrollmentController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(201, "Course registration successful.!", response));
+    }
+
+
+    // view course enrolled
+    @GetMapping("/my-courses")
+    @RequireRole({"STUDENT"})
+    public ResponseEntity<ApiResponse<Page<EnrollmentResponse>>> getMyEnrolledCourses(
+            @RequestHeader("X-User-Id") UUID studentId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        log.info("Student {} requesting their enrolled courses", studentId);
+
+        Page<EnrollmentResponse> response = enrollmentService.getMyEnrolledCourses(studentId, page, size);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "Fetched enrolled courses successfully", response));
     }
 }
