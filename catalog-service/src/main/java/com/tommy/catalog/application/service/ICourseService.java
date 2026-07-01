@@ -1,13 +1,11 @@
 package com.tommy.catalog.application.service;
 
 import com.tommy.catalog.application.dto.request.*;
-import com.tommy.catalog.application.dto.response.CourseApprovalDetailResponse;
-import com.tommy.catalog.application.dto.response.CourseApprovalResponse;
-import com.tommy.catalog.application.dto.response.CourseCardResponse;
-import com.tommy.catalog.application.dto.response.CourseDetailPublicResponse;
+import com.tommy.catalog.application.dto.response.*;
 import com.tommy.catalog.domain.entity.Course;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface ICourseService {
@@ -47,6 +45,12 @@ public interface ICourseService {
     // Get public Course Detail
     CourseDetailPublicResponse getPublicCourseDetail(String slug);
 
+    // Get course summary
+    List<CourseSummaryResponse> getCourseSummaries(List<UUID> courseIds);
+
+
     // Migrate course status to Learning Service
     void migrateCourseStatuses();
+
+
 }

@@ -31,7 +31,8 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             "/api/auth/login",
             "/api/auth/register",
             "/api/catalog/p/",
-            "/api/courses/p/"// API xem profile công khai
+            "/api/courses/p/",
+            "/api/courses/bulk-summaries" // API xem profile công khai
     );
 
     @Override

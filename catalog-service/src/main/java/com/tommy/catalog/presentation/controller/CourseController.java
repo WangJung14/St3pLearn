@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 import com.tommy.common.security.RequireRole;
 
@@ -244,6 +245,18 @@ public class CourseController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200, "Get course details successfully", courseDetail));
+    }
+
+    // get summary course
+    @PostMapping("/bulk-summaries")
+    public ResponseEntity<ApiResponse<List<CourseSummaryResponse>>> getBulkSummaries(
+            @RequestBody CourseBulkRequest request) {
+
+        log.info("Received request for bulk summaries of courses");
+
+        List<CourseSummaryResponse> response = courseService.getCourseSummaries(request.courseIds());
+
+        return ResponseEntity.ok(ApiResponse.success(200, "Fetched bulk summaries successfully", response));
     }
 
     // Migration API to sync all courses to Learning Service

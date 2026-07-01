@@ -25,10 +25,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -552,6 +549,31 @@ public class CourseService implements ICourseService {
                 .instructorId(course.getInstructorId())
                 .curriculum(chapterDtos)
                 .build();
+    }
+
+    /*
+    * Get course summary
+    * */
+    @Override
+    @Transactional(readOnly = true)
+    public List<CourseSummaryResponse> getCourseSummaries(List<UUID> courseIds){
+        log.info("Fetching bulk summaries for {} courses", courseIds.size());
+
+        if(courseIds == null || courseIds.isEmpty()){
+            return Collections.emptyList();
+        }
+
+        List<Course> courses = courseRepository.findAllById(courseIds);
+
+        return courses.stream().map(course -> CourseSummaryResponse.builder()
+                .id(course.getId())
+                .title(course.getTitle())
+                .slug(course.getSlug())
+                .thumbnailUrl(course.getThumbnailUrl())
+                .price(course.getPrice())
+                .instructorId(course.getInstructorId())
+                .build()
+        ).toList();
     }
 
     @Override
