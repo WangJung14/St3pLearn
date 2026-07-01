@@ -58,6 +58,7 @@ public enum ErrorCode {
     /// LEARNING ERROR
     // Enroll Course
     ENROLLMENT_EXISTS(400,"This enrollment already exists.", HttpStatus.BAD_REQUEST),
+    ENROLLMENT_NOT_FOUND(404 ,"This enrollment does not exist.", HttpStatus.NOT_FOUND),
     ;
 
     private final int code;
