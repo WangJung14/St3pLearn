@@ -10,8 +10,13 @@ import com.tommy.identity.domain.entity.*;
 import com.tommy.identity.domain.enums.AccountStatus;
 import com.tommy.identity.domain.exception.AppException;
 import com.tommy.identity.domain.exception.ErrorCode;
+import com.tommy.identity.application.dto.request.ForgotPasswordRequest;
+import com.tommy.identity.application.dto.request.ResetPasswordRequest;
 import com.tommy.identity.infrastructure.persistence.repository.*;
 import com.tommy.identity.infrastructure.security.JwtTokenProvider;
+import com.tommy.common.event.ForgotPasswordEvent;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,6 +41,8 @@ public class AuthService implements IAuthService {
 
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final StringRedisTemplate redisTemplate;
+    private final RabbitTemplate rabbitTemplate;
 
 
     /*
@@ -298,5 +305,63 @@ public class AuthService implements IAuthService {
                     log.info("User {} successfully logged out", userId);
                 });
 
+    }
+
+    @Override
+    public void forgotPassword(ForgotPasswordRequest request) {
+        Account account = accountRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        if (account.getStatus() == AccountStatus.DELETED ||
+                account.getStatus() == AccountStatus.LOCKED ||
+                account.getStatus() == AccountStatus.SUSPENDED) {
+            throw new AppException(ErrorCode.ACCOUNT_LOCKED);
+        }
+
+        // Generate 6-digit OTP
+        String otp = String.format("%06d", new java.security.SecureRandom().nextInt(999999));
+
+        // Save to Redis (TTL 5 mins)
+        redisTemplate.opsForValue().set("OTP:" + request.getEmail(), otp, 5, java.util.concurrent.TimeUnit.MINUTES);
+
+        // Publish event to RabbitMQ
+        ForgotPasswordEvent event = ForgotPasswordEvent.builder()
+                .email(request.getEmail())
+                .otp(otp)
+                .build();
+        
+        rabbitTemplate.convertAndSend("auth_exchange", "forgot_password_routing_key", event);
+        
+        log.info("Generated OTP and sent ForgotPasswordEvent for email: {}", request.getEmail());
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        String redisKey = "OTP:" + request.getEmail();
+        String savedOtp = redisTemplate.opsForValue().get(redisKey);
+
+        if (savedOtp == null || !savedOtp.equals(request.getOtp())) {
+            throw new AppException(ErrorCode.INVALID_TOKEN); // Or create a new ErrorCode.INVALID_OTP
+        }
+
+        Account account = accountRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        account.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        accountRepository.save(account);
+
+        // Delete OTP from Redis
+        redisTemplate.delete(redisKey);
+
+        // Save audit log
+        UserSecurityLog securityLog = UserSecurityLog.builder()
+                .userId(account.getId())
+                .eventType("PASSWORD_RESET")
+                .metadata(Map.of("action", "User reset password via OTP"))
+                .build();
+        securityLogRepository.save(securityLog);
+
+        log.info("Successfully reset password for email: {}", request.getEmail());
     }
 }

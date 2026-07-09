@@ -25,4 +25,14 @@ public interface IAuthService {
      *Logout Account
      * */
     void logout(LogoutRequest request);
+
+    /**
+     * Forgot Password - Send OTP
+     */
+    void forgotPassword(com.tommy.identity.application.dto.request.ForgotPasswordRequest request);
+
+    /**
+     * Reset Password - Verify OTP and update password
+     */
+    void resetPassword(com.tommy.identity.application.dto.request.ResetPasswordRequest request);
 }

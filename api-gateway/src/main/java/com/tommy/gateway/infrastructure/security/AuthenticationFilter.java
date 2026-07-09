@@ -30,6 +30,8 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     private final List<String> publicEndpoints = List.of(
             "/api/auth/login",
             "/api/auth/register",
+            "/api/auth/forgot-password",
+            "/api/auth/reset-password",
             "/api/catalog/p/",
             "/api/courses/p/",
             "/api/courses/bulk-summaries" // API xem profile công khai

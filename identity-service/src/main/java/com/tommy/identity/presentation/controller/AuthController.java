@@ -1,9 +1,11 @@
 package com.tommy.identity.presentation.controller;
 
+import com.tommy.identity.application.dto.request.ForgotPasswordRequest;
 import com.tommy.identity.application.dto.request.LoginRequest;
 import com.tommy.identity.application.dto.request.LogoutRequest;
 import com.tommy.identity.application.dto.request.RefreshTokenRequest;
 import com.tommy.identity.application.dto.request.RegisterRequest;
+import com.tommy.identity.application.dto.request.ResetPasswordRequest;
 import com.tommy.identity.application.dto.response.AuthResponse;
 import com.tommy.identity.application.service.IAuthService;
 import com.tommy.identity.presentation.response.ApiResponse;
@@ -65,5 +67,25 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200, "Logout successful", null));
+    }
+
+    // Forgot Password
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "OTP sent to email successfully", null));
+    }
+
+    // Reset Password
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "Password reset successfully", null));
     }
 }
