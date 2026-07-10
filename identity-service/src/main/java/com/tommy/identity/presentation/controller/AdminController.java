@@ -2,6 +2,7 @@ package com.tommy.identity.presentation.controller;
 
 import com.tommy.common.security.RequireRole;
 import com.tommy.identity.application.dto.request.AssignRoleRequest;
+import com.tommy.identity.application.dto.response.UserDetailAdminResponse;
 import com.tommy.identity.application.dto.response.UserListAdminResponse;
 import com.tommy.identity.application.service.IAdminService;
 import com.tommy.identity.presentation.response.ApiResponse;
@@ -32,6 +33,16 @@ public class AdminController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200, "User list retrieved successfully", response));
+    }
+
+    // Get User Detail
+    @RequireRole("ADMIN")
+    @GetMapping("/{userId}")
+    public ResponseEntity<ApiResponse<UserDetailAdminResponse>> getUserDetail(@PathVariable("userId") UUID userId) {
+        UserDetailAdminResponse response = adminService.getUserDetail(userId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "User detail retrieved successfully", response));
     }
 
     // Assign Role

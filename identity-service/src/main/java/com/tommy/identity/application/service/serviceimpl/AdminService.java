@@ -1,6 +1,7 @@
 package com.tommy.identity.application.service.serviceimpl;
 
 import com.tommy.identity.application.dto.request.AssignRoleRequest;
+import com.tommy.identity.application.dto.response.UserDetailAdminResponse;
 import com.tommy.identity.application.dto.response.UserListAdminResponse;
 import com.tommy.identity.application.service.IAdminService;
 import com.tommy.identity.domain.entity.Account;
@@ -90,5 +91,27 @@ public class AdminService implements IAdminService {
                 .status(account.getStatus())
                 .roles(account.getRoles().stream().map(Role::getName).collect(java.util.stream.Collectors.toSet()))
                 .build());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserDetailAdminResponse getUserDetail(UUID targetUserId) {
+        Account account = accountRepository.findById(targetUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        return UserDetailAdminResponse.builder()
+                .id(account.getId())
+                .username(account.getUsername())
+                .email(account.getEmail())
+                .emailVerified(account.isEmailVerified())
+                .status(account.getStatus())
+                .roles(account.getRoles().stream().map(Role::getName).collect(java.util.stream.Collectors.toSet()))
+                .fullName(account.getProfile() != null ? account.getProfile().getFullName() : null)
+                .avatarUrl(account.getProfile() != null ? account.getProfile().getAvatarUrl() : null)
+                .bio(account.getProfile() != null ? account.getProfile().getBio() : null)
+                .createdAt(account.getCreatedAt())
+                .updatedAt(account.getUpdatedAt())
+                .lastLoginAt(account.getLastLoginAt())
+                .build();
     }
 }

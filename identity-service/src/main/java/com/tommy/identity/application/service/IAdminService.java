@@ -1,6 +1,7 @@
 package com.tommy.identity.application.service;
 
 import com.tommy.identity.application.dto.request.AssignRoleRequest;
+import com.tommy.identity.application.dto.response.UserDetailAdminResponse;
 import com.tommy.identity.application.dto.response.UserListAdminResponse;
 import com.tommy.identity.domain.enums.AccountStatus;
 import org.springframework.data.domain.Page;
@@ -27,4 +28,9 @@ public interface IAdminService {
      * Tìm kiếm người dùng
      */
     Page<UserListAdminResponse> searchUsers(String keyword, int page, int size);
+
+    /**
+     * Lấy thông tin chi tiết người dùng
+     */
+    UserDetailAdminResponse getUserDetail(UUID targetUserId);
 }
