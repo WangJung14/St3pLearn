@@ -37,4 +37,19 @@ public class AdminService implements IAdminService {
 
         log.info("Assigned role {} to user {}", request.getRoleName(), targetUserId);
     }
+
+    @Override
+    @Transactional
+    public void removeRole(UUID targetUserId, String roleName) {
+        Account account = accountRepository.findById(targetUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+
+        account.getRoles().remove(role);
+        accountRepository.save(account);
+
+        log.info("Removed role {} from user {}", roleName, targetUserId);
+    }
 }

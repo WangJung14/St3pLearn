@@ -31,4 +31,18 @@ public class AdminController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200, "Role assigned successfully", null));
     }
+
+    // Remove Role
+    @RequireRole("ADMIN")
+    @DeleteMapping("/{userId}/roles/{roleName}")
+    public ResponseEntity<ApiResponse<Void>> removeRole(
+            @PathVariable("userId") UUID userId,
+            @PathVariable("roleName") String roleName) {
+        
+        adminService.removeRole(userId, roleName);
+        
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "Role removed successfully", null));
+    }
 }
