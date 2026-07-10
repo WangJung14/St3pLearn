@@ -14,9 +14,11 @@ public class RabbitMQConfig {
 
     public static final String FORGOT_PASSWORD_QUEUE = "forgot_password_queue";
     public static final String VERIFY_EMAIL_QUEUE = "verify_email_queue";
+    public static final String PASSWORD_CHANGED_QUEUE = "password_changed_queue";
     public static final String AUTH_EXCHANGE = "auth_exchange";
     public static final String FORGOT_PASSWORD_ROUTING_KEY = "forgot_password_routing_key";
     public static final String VERIFY_EMAIL_ROUTING_KEY = "verify_email_routing_key";
+    public static final String PASSWORD_CHANGED_ROUTING_KEY = "password_changed_routing_key";
 
     @Bean
     public Queue forgotPasswordQueue() {
@@ -41,6 +43,16 @@ public class RabbitMQConfig {
     @Bean
     public Binding bindingVerifyEmailQueue(Queue verifyEmailQueue, DirectExchange authExchange) {
         return BindingBuilder.bind(verifyEmailQueue).to(authExchange).with(VERIFY_EMAIL_ROUTING_KEY);
+    }
+
+    @Bean
+    public Queue passwordChangedQueue() {
+        return new Queue(PASSWORD_CHANGED_QUEUE, true);
+    }
+
+    @Bean
+    public Binding bindingPasswordChangedQueue(Queue passwordChangedQueue, DirectExchange authExchange) {
+        return BindingBuilder.bind(passwordChangedQueue).to(authExchange).with(PASSWORD_CHANGED_ROUTING_KEY);
     }
 
     @Bean

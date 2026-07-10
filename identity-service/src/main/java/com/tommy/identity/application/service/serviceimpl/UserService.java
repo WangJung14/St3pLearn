@@ -15,6 +15,10 @@ import com.tommy.identity.infrastructure.persistence.repository.AccountRepositor
 import com.tommy.identity.infrastructure.persistence.repository.RefreshTokenRepository;
 import com.tommy.identity.infrastructure.persistence.repository.UserProfileRepository;
 import com.tommy.identity.infrastructure.persistence.repository.UserSecurityLogRepository;
+import com.tommy.identity.application.dto.request.ChangePasswordRequest;
+import com.tommy.common.event.PasswordChangedEvent;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,6 +40,8 @@ public class UserService implements IUserService {
     private final UserProfileRepository userProfileRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserSecurityLogRepository  securityLogRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final RabbitTemplate rabbitTemplate;
 
     /*
     * Get my profile
@@ -195,7 +201,42 @@ public class UserService implements IUserService {
                 .build());
     }
 
+    /**
+     * Thay đổi mật khẩu
+     */
+    @Override
+    @Transactional
+    public void changePassword(UUID userId, ChangePasswordRequest request) {
+        if (!request.getNewPassword().equals(request.getRetypeNewPassword())) {
+            throw new AppException(ErrorCode.INVALID_KEY); // Re-type doesn't match
+        }
 
+        Account account = accountRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
+        if (!passwordEncoder.matches(request.getOldPassword(), account.getPasswordHash())) {
+            throw new AppException(ErrorCode.WRONG_PASSWORD);
+        }
+
+        account.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        accountRepository.save(account);
+
+        // Delete all refresh tokens of this user
+        refreshTokenRepository.deleteByUserId(userId);
+
+        UserSecurityLog securityLog = UserSecurityLog.builder()
+                .userId(account.getId())
+                .eventType("PASSWORD_CHANGED")
+                .metadata(Map.of("action", "User changed their password"))
+                .build();
+        securityLogRepository.save(securityLog);
+
+        PasswordChangedEvent event = PasswordChangedEvent.builder()
+                .email(account.getEmail())
+                .build();
+        rabbitTemplate.convertAndSend("auth_exchange", "password_changed_routing_key", event);
+
+        log.info("Successfully changed password for user: {}", account.getUsername());
+    }
 
 }

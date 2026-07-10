@@ -36,4 +36,8 @@ public interface IUserService {
      * */
     Page<LoginHistoryResponse> getMyLoginHistory(UUID userId, int page, int size);
 
+    /**
+     * Thay đổi mật khẩu
+     * */
+    void changePassword(UUID userId, com.tommy.identity.application.dto.request.ChangePasswordRequest request);
 }

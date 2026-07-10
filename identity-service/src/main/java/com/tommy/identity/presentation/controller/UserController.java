@@ -1,6 +1,7 @@
 package com.tommy.identity.presentation.controller;
 
 import com.tommy.identity.application.dto.request.UpdateProfileRequest;
+import com.tommy.identity.application.dto.request.ChangePasswordRequest;
 import com.tommy.identity.application.dto.response.LoginHistoryResponse;
 import com.tommy.identity.application.dto.response.PublicProfileResponse;
 import com.tommy.identity.application.dto.response.UserProfileResponse;
@@ -93,5 +94,20 @@ public class UserController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200,"Get login history successful",history));
+    }
+
+    // Change Password
+    @PostMapping("/me/password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @jakarta.validation.Valid @RequestBody ChangePasswordRequest request) {
+
+        String userIdStr = SecurityContextHolder.getContext().getAuthentication().getName();
+        UUID userId = UUID.fromString(userIdStr);
+
+        userService.changePassword(userId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200,"Password changed successfully",null));
     }
 }

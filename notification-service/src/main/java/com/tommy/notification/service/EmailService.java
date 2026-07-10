@@ -59,4 +59,24 @@ public class EmailService {
             log.error("Error while sending email", e);
         }
     }
+
+    public void sendPasswordChangedEmail(String to) {
+        try {
+            Context context = new Context();
+            context.setVariable("email", to);
+
+            String process = templateEngine.process("password-changed", context);
+            
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject("St3pLearn - Cảnh báo bảo mật: Thay đổi mật khẩu");
+            helper.setText(process, true);
+            
+            javaMailSender.send(mimeMessage);
+            log.info("Sent password changed email to {}", to);
+        } catch (MessagingException e) {
+            log.error("Error while sending email", e);
+        }
+    }
 }
