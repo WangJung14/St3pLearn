@@ -45,4 +45,34 @@ public class AdminController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200, "Role removed successfully", null));
     }
+
+    // Suspend User
+    @RequireRole("ADMIN")
+    @PutMapping("/{userId}/suspend")
+    public ResponseEntity<ApiResponse<Void>> suspendUser(@PathVariable("userId") UUID userId) {
+        adminService.changeAccountStatus(userId, com.tommy.identity.domain.enums.AccountStatus.SUSPENDED);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "User suspended successfully", null));
+    }
+
+    // Lock User
+    @RequireRole("ADMIN")
+    @PutMapping("/{userId}/lock")
+    public ResponseEntity<ApiResponse<Void>> lockUser(@PathVariable("userId") UUID userId) {
+        adminService.changeAccountStatus(userId, com.tommy.identity.domain.enums.AccountStatus.LOCKED);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "User locked successfully", null));
+    }
+
+    // Activate User
+    @RequireRole("ADMIN")
+    @PutMapping("/{userId}/activate")
+    public ResponseEntity<ApiResponse<Void>> activateUser(@PathVariable("userId") UUID userId) {
+        adminService.changeAccountStatus(userId, com.tommy.identity.domain.enums.AccountStatus.ACTIVE);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "User activated successfully", null));
+    }
 }

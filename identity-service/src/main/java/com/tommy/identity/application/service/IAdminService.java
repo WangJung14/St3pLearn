@@ -1,6 +1,7 @@
 package com.tommy.identity.application.service;
 
 import com.tommy.identity.application.dto.request.AssignRoleRequest;
+import com.tommy.identity.domain.enums.AccountStatus;
 
 import java.util.UUID;
 
@@ -14,4 +15,9 @@ public interface IAdminService {
      * Xóa Role khỏi User
      */
     void removeRole(UUID targetUserId, String roleName);
+
+    /**
+     * Thay đổi trạng thái tài khoản (Suspend, Lock, Activate)
+     */
+    void changeAccountStatus(UUID targetUserId, AccountStatus status);
 }

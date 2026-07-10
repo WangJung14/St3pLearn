@@ -4,10 +4,12 @@ import com.tommy.identity.application.dto.request.AssignRoleRequest;
 import com.tommy.identity.application.service.IAdminService;
 import com.tommy.identity.domain.entity.Account;
 import com.tommy.identity.domain.entity.Role;
+import com.tommy.identity.domain.enums.AccountStatus;
 import com.tommy.identity.domain.exception.AppException;
 import com.tommy.identity.domain.exception.ErrorCode;
 import com.tommy.identity.infrastructure.persistence.repository.AccountRepository;
 import com.tommy.identity.infrastructure.persistence.repository.RoleRepository;
+import com.tommy.identity.infrastructure.persistence.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ public class AdminService implements IAdminService {
 
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     @Transactional
@@ -51,5 +54,22 @@ public class AdminService implements IAdminService {
         accountRepository.save(account);
 
         log.info("Removed role {} from user {}", roleName, targetUserId);
+    }
+
+    @Override
+    @Transactional
+    public void changeAccountStatus(UUID targetUserId, AccountStatus status) {
+        Account account = accountRepository.findById(targetUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        account.setStatus(status);
+        accountRepository.save(account);
+
+        // Force logout if suspending or locking
+        if (status == AccountStatus.SUSPENDED || status == AccountStatus.LOCKED) {
+            refreshTokenRepository.deleteByUserId(targetUserId);
+        }
+
+        log.info("Changed account status to {} for user {}", status, targetUserId);
     }
 }
