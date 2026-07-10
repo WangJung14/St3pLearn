@@ -38,4 +38,25 @@ public class EmailService {
             log.error("Error while sending email", e);
         }
     }
+
+    public void sendVerificationEmail(String to, String otp) {
+        try {
+            Context context = new Context();
+            context.setVariable("email", to);
+            context.setVariable("otp", otp);
+
+            String process = templateEngine.process("verify-email", context);
+            
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject("St3pLearn - Mã xác nhận tài khoản");
+            helper.setText(process, true);
+            
+            javaMailSender.send(mimeMessage);
+            log.info("Sent verification email to {}", to);
+        } catch (MessagingException e) {
+            log.error("Error while sending email", e);
+        }
+    }
 }

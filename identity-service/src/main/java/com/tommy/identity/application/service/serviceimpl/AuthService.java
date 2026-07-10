@@ -15,6 +15,9 @@ import com.tommy.identity.application.dto.request.ResetPasswordRequest;
 import com.tommy.identity.infrastructure.persistence.repository.*;
 import com.tommy.identity.infrastructure.security.JwtTokenProvider;
 import com.tommy.common.event.ForgotPasswordEvent;
+import com.tommy.common.event.VerifyEmailEvent;
+import com.tommy.identity.application.dto.request.VerifyEmailRequest;
+import com.tommy.identity.application.dto.request.ResendVerifyEmailRequest;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import lombok.RequiredArgsConstructor;
@@ -90,6 +93,17 @@ public class AuthService implements IAuthService {
         // 6. Save database
         Account savedAccount = accountRepository.save(account);
         log.info("Successfully registered new user: {}", savedAccount.getUsername());
+
+        // 6.1 Generate OTP for email verification
+        String otp = String.format("%06d", new java.security.SecureRandom().nextInt(999999));
+        redisTemplate.opsForValue().set("VERIFY_OTP:" + request.getEmail(), otp, 5, java.util.concurrent.TimeUnit.MINUTES);
+        
+        VerifyEmailEvent event = VerifyEmailEvent.builder()
+                .email(request.getEmail())
+                .otp(otp)
+                .build();
+        rabbitTemplate.convertAndSend("auth_exchange", "verify_email_routing_key", event);
+        log.info("Generated OTP and sent VerifyEmailEvent for email: {}", request.getEmail());
 
         // 7. Generate token
         String accessToken = jwtTokenProvider.generateAccessToken(savedAccount.getId(), savedAccount.getUsername(), savedAccount.getRoles());
@@ -307,6 +321,9 @@ public class AuthService implements IAuthService {
 
     }
 
+    /*
+    * Forgot password
+    * */
     @Override
     public void forgotPassword(ForgotPasswordRequest request) {
         Account account = accountRepository.findByEmail(request.getEmail())
@@ -335,6 +352,9 @@ public class AuthService implements IAuthService {
         log.info("Generated OTP and sent ForgotPasswordEvent for email: {}", request.getEmail());
     }
 
+    /*
+    * Reset password
+    * */
     @Override
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
@@ -363,5 +383,61 @@ public class AuthService implements IAuthService {
         securityLogRepository.save(securityLog);
 
         log.info("Successfully reset password for email: {}", request.getEmail());
+    }
+
+    /*
+    * Verify email with OTP
+    * */
+    @Override
+    @Transactional
+    public void verifyEmail(VerifyEmailRequest request) {
+        String redisKey = "VERIFY_OTP:" + request.getEmail();
+        String savedOtp = redisTemplate.opsForValue().get(redisKey);
+
+        if (savedOtp == null || !savedOtp.equals(request.getOtp())) {
+            throw new AppException(ErrorCode.INVALID_TOKEN);
+        }
+
+        Account account = accountRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        account.setStatus(AccountStatus.ACTIVE);
+        account.setEmailVerified(true);
+        accountRepository.save(account);
+
+        redisTemplate.delete(redisKey);
+
+        UserSecurityLog securityLog = UserSecurityLog.builder()
+                .userId(account.getId())
+                .eventType("EMAIL_VERIFIED")
+                .metadata(Map.of("action", "User verified email via OTP"))
+                .build();
+        securityLogRepository.save(securityLog);
+
+        log.info("Successfully verified email: {}", request.getEmail());
+    }
+
+    /*
+    * Resend verification email with OTP
+    * */
+    @Override
+    public void resendVerificationEmail(ResendVerifyEmailRequest request) {
+        Account account = accountRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        if (account.isEmailVerified()) {
+            throw new AppException(ErrorCode.USER_EXISTED); // Wait, maybe create a new ErrorCode or just reuse. We can just return or throw error.
+        }
+
+        String otp = String.format("%06d", new java.security.SecureRandom().nextInt(999999));
+        redisTemplate.opsForValue().set("VERIFY_OTP:" + request.getEmail(), otp, 5, java.util.concurrent.TimeUnit.MINUTES);
+
+        VerifyEmailEvent event = VerifyEmailEvent.builder()
+                .email(request.getEmail())
+                .otp(otp)
+                .build();
+        rabbitTemplate.convertAndSend("auth_exchange", "verify_email_routing_key", event);
+
+        log.info("Generated new OTP and sent VerifyEmailEvent for email: {}", request.getEmail());
     }
 }

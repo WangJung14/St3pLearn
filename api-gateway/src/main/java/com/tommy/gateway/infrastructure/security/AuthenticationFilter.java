@@ -32,6 +32,8 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             "/api/auth/register",
             "/api/auth/forgot-password",
             "/api/auth/reset-password",
+            "/api/auth/resend-verification-email",
+            "/api/auth/verify-email",
             "/api/catalog/p/",
             "/api/courses/p/",
             "/api/courses/bulk-summaries" // API xem profile công khai

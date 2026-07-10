@@ -1,9 +1,6 @@
 package com.tommy.identity.application.service;
 
-import com.tommy.identity.application.dto.request.LoginRequest;
-import com.tommy.identity.application.dto.request.LogoutRequest;
-import com.tommy.identity.application.dto.request.RefreshTokenRequest;
-import com.tommy.identity.application.dto.request.RegisterRequest;
+import com.tommy.identity.application.dto.request.*;
 import com.tommy.identity.application.dto.response.AuthResponse;
 
 public interface IAuthService {
@@ -29,10 +26,20 @@ public interface IAuthService {
     /**
      * Forgot Password - Send OTP
      */
-    void forgotPassword(com.tommy.identity.application.dto.request.ForgotPasswordRequest request);
+    void forgotPassword(ForgotPasswordRequest request);
 
     /**
      * Reset Password - Verify OTP and update password
      */
-    void resetPassword(com.tommy.identity.application.dto.request.ResetPasswordRequest request);
+    void resetPassword(ResetPasswordRequest request);
+
+    /**
+     * Verify email with OTP
+     */
+    void verifyEmail(VerifyEmailRequest request);
+
+    /**
+     * Resend verification email with OTP
+     */
+    void resendVerificationEmail(ResendVerifyEmailRequest request);
 }

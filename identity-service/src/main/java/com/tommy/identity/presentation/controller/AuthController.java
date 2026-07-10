@@ -6,6 +6,8 @@ import com.tommy.identity.application.dto.request.LogoutRequest;
 import com.tommy.identity.application.dto.request.RefreshTokenRequest;
 import com.tommy.identity.application.dto.request.RegisterRequest;
 import com.tommy.identity.application.dto.request.ResetPasswordRequest;
+import com.tommy.identity.application.dto.request.VerifyEmailRequest;
+import com.tommy.identity.application.dto.request.ResendVerifyEmailRequest;
 import com.tommy.identity.application.dto.response.AuthResponse;
 import com.tommy.identity.application.service.IAuthService;
 import com.tommy.identity.presentation.response.ApiResponse;
@@ -87,5 +89,25 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(200, "Password reset successfully", null));
+    }
+
+    // Verify Email
+    @PostMapping("/verify-email")
+    public ResponseEntity<ApiResponse<Void>> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        authService.verifyEmail(request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "Email verified successfully", null));
+    }
+
+    // Resend Verification Email
+    @PostMapping("/resend-verification-email")
+    public ResponseEntity<ApiResponse<Void>> resendVerificationEmail(@Valid @RequestBody ResendVerifyEmailRequest request) {
+        authService.resendVerificationEmail(request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "Verification email sent successfully", null));
     }
 }
