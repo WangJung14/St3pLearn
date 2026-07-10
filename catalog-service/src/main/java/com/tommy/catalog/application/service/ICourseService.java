@@ -49,6 +49,9 @@ public interface ICourseService {
     List<CourseSummaryResponse> getCourseSummaries(List<UUID> courseIds);
 
 
+    // Admin remove course content for violation
+    void adminRemoveCourse(UUID courseId, String reason, String adminToken);
+
     // Migrate course status to Learning Service
     void migrateCourseStatuses();
 

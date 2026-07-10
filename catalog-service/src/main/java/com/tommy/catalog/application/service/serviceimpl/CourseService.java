@@ -13,6 +13,9 @@ import com.tommy.catalog.infrastructure.persistence.repository.*;
 import com.tommy.catalog.util.SlugUtil;
 import com.tommy.catalog.infrastructure.messaging.RabbitMQConfig;
 import com.tommy.common.event.CourseStatusChangedEvent;
+import com.tommy.common.event.CourseViolationEvent;
+import com.tommy.catalog.infrastructure.client.IdentityClient;
+import com.tommy.catalog.infrastructure.client.dto.IdentityUserDetailResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -39,6 +42,7 @@ public class CourseService implements ICourseService {
     private final CourseApprovalRequestRepository courseApprovalRequestRepository;
     private final CourseChapterRepository courseChapterRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final IdentityClient identityClient;
 
     @Override
     @Transactional
@@ -151,6 +155,45 @@ public class CourseService implements ICourseService {
         courseRepository.save(course);
         log.info("Instructor {} archived course: {}", instructorId, courseId);
         
+        publishStatusChangeEvent(course);
+    }
+
+    /*
+    * Admin remove course content
+    * */
+    @Override
+    @Transactional
+    public void adminRemoveCourse(UUID courseId, String reason, String adminToken) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // 1. Change status to ARCHIVED
+        course.setStatus(CourseStatus.ARCHIVED);
+        courseRepository.save(course);
+        
+        log.info("Admin removed course: {} for reason: {}", courseId, reason);
+
+        // 2. Fetch instructor details via Feign Client
+        try {
+            ApiResponse<IdentityUserDetailResponse> identityResponse = identityClient.getUserDetail(course.getInstructorId(), adminToken);
+            if (identityResponse != null && identityResponse.getData() != null) {
+                String instructorEmail = identityResponse.getData().getEmail();
+
+                // 3. Publish violation event to RabbitMQ
+                CourseViolationEvent event = new CourseViolationEvent(instructorEmail, course.getTitle(), reason);
+                rabbitTemplate.convertAndSend(
+                        RabbitMQConfig.EXCHANGE_NAME,
+                        "course_violation_routing_key",
+                        event
+                );
+                log.info("Published course violation event for course {} to instructor {}", courseId, instructorEmail);
+            } else {
+                log.warn("Could not retrieve instructor details for course {}. Identity response is null.", courseId);
+            }
+        } catch (Exception e) {
+            log.error("Failed to fetch instructor details or publish violation event for course {}: {}", courseId, e.getMessage());
+        }
+
         publishStatusChangeEvent(course);
     }
 

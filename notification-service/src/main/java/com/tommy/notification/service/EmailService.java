@@ -76,7 +76,28 @@ public class EmailService {
             javaMailSender.send(mimeMessage);
             log.info("Sent password changed email to {}", to);
         } catch (MessagingException e) {
-            log.error("Error while sending email", e);
+            e.printStackTrace();
+        }
+    }
+
+    public void sendCourseViolationEmail(String to, String courseTitle, String reason) {
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setTo(to);
+            helper.setSubject("St3pLearn - Cảnh báo vi phạm khóa học: " + courseTitle);
+            
+            Context context = new Context();
+            context.setVariable("courseTitle", courseTitle);
+            context.setVariable("reason", reason);
+            
+            String html = templateEngine.process("course-violation", context);
+            helper.setText(html, true);
+            
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            e.printStackTrace();
         }
     }
 }

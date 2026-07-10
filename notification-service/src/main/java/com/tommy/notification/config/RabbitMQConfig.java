@@ -15,10 +15,15 @@ public class RabbitMQConfig {
     public static final String FORGOT_PASSWORD_QUEUE = "forgot_password_queue";
     public static final String VERIFY_EMAIL_QUEUE = "verify_email_queue";
     public static final String PASSWORD_CHANGED_QUEUE = "password_changed_queue";
+    public static final String COURSE_VIOLATION_QUEUE = "course_violation_queue";
+
     public static final String AUTH_EXCHANGE = "auth_exchange";
+    public static final String CATALOG_EXCHANGE = "catalog_exchange";
+
     public static final String FORGOT_PASSWORD_ROUTING_KEY = "forgot_password_routing_key";
     public static final String VERIFY_EMAIL_ROUTING_KEY = "verify_email_routing_key";
     public static final String PASSWORD_CHANGED_ROUTING_KEY = "password_changed_routing_key";
+    public static final String COURSE_VIOLATION_ROUTING_KEY = "course_violation_routing_key";
 
     @Bean
     public Queue forgotPasswordQueue() {
@@ -28,6 +33,11 @@ public class RabbitMQConfig {
     @Bean
     public DirectExchange authExchange() {
         return new DirectExchange(AUTH_EXCHANGE);
+    }
+
+    @Bean
+    public DirectExchange catalogExchange() {
+        return new DirectExchange(CATALOG_EXCHANGE);
     }
 
     @Bean
@@ -53,6 +63,16 @@ public class RabbitMQConfig {
     @Bean
     public Binding bindingPasswordChangedQueue(Queue passwordChangedQueue, DirectExchange authExchange) {
         return BindingBuilder.bind(passwordChangedQueue).to(authExchange).with(PASSWORD_CHANGED_ROUTING_KEY);
+    }
+
+    @Bean
+    public Queue courseViolationQueue() {
+        return new Queue(COURSE_VIOLATION_QUEUE, true);
+    }
+
+    @Bean
+    public Binding bindingCourseViolationQueue(Queue courseViolationQueue, DirectExchange catalogExchange) {
+        return BindingBuilder.bind(courseViolationQueue).to(catalogExchange).with(COURSE_VIOLATION_ROUTING_KEY);
     }
 
     @Bean
