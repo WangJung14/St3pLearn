@@ -3,6 +3,7 @@ package com.tommy.learning.application.service.serviceimpl;
 import com.tommy.common.exception.AppException;
 import com.tommy.common.exception.ErrorCode;
 import com.tommy.learning.application.dto.request.UpdateProgressRequest;
+import com.tommy.learning.application.dto.response.ResumeLearningResponse;
 import com.tommy.learning.application.service.ILearningProgressService;
 import com.tommy.learning.domain.entity.Enrollment;
 import com.tommy.learning.domain.entity.LessonProgress;
@@ -54,5 +55,58 @@ public class LearningProgressService implements ILearningProgressService {
         redisTemplate.opsForValue().set(lastAccessedKey, lessonId.toString());
         
         log.debug("Tracking progress to Redis for student: {}, lesson: {}, seconds: {}", studentId, lessonId, request.getCurrentSeconds());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResumeLearningResponse resumeLearning(UUID studentId, UUID courseId) {
+        // 1. Verify Enrollment
+        Enrollment enrollment = enrollmentRepository.findByStudentIdAndCourseId(studentId, courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_ENROLLED));
+        
+        if (enrollment.getStatus() != EnrollmentStatus.ACTIVE) {
+            throw new AppException(ErrorCode.COURSE_NOT_ENROLLED);
+        }
+
+        // 2. Read last_accessed_lesson_id from Redis first
+        String lastAccessedKey = String.format("last_accessed:student:%s:course:%s", studentId, courseId);
+        Object cachedLessonIdStr = redisTemplate.opsForValue().get(lastAccessedKey);
+        
+        UUID lessonId = null;
+        if (cachedLessonIdStr != null) {
+            lessonId = UUID.fromString(cachedLessonIdStr.toString());
+        } else {
+            // Fallback to DB
+            lessonId = enrollment.getLastAccessedLessonId();
+        }
+
+        // Option A: If null, return null (never started)
+        if (lessonId == null) {
+            return ResumeLearningResponse.builder()
+                    .lessonId(null)
+                    .resumeAtSeconds(0)
+                    .build();
+        }
+
+        // 3. Read watch_position_seconds from Redis first
+        String progressKey = String.format(PROGRESS_KEY_PREFIX, studentId, courseId, lessonId);
+        Object cachedProgress = redisTemplate.opsForValue().get(progressKey);
+        
+        int resumeAtSeconds = 0;
+        if (cachedProgress != null) {
+            resumeAtSeconds = Integer.parseInt(cachedProgress.toString());
+        } else {
+            // Fallback to DB
+            LessonProgress lessonProgress = lessonProgressRepository.findByEnrollmentIdAndLessonId(enrollment.getId(), lessonId)
+                    .orElse(null);
+            if (lessonProgress != null) {
+                resumeAtSeconds = lessonProgress.getWatchPositionSeconds();
+            }
+        }
+
+        return ResumeLearningResponse.builder()
+                .lessonId(lessonId)
+                .resumeAtSeconds(resumeAtSeconds)
+                .build();
     }
 }

@@ -3,6 +3,7 @@ package com.tommy.learning.presentation.controller;
 import com.tommy.common.response.ApiResponse;
 import com.tommy.common.security.RequireRole;
 import com.tommy.learning.application.dto.request.UpdateProgressRequest;
+import com.tommy.learning.application.dto.response.ResumeLearningResponse;
 import com.tommy.learning.application.service.ILearningProgressService;
 import com.tommy.learning.application.service.impl.LearningService;
 import jakarta.validation.Valid;
@@ -51,5 +52,18 @@ public class LearningController {
         learningProgressService.trackProgress(studentId, courseId, lessonId, request);
 
         return ResponseEntity.ok(ApiResponse.success(200, "Progress tracked successfully", null));
+    }
+
+    @GetMapping("/courses/{courseId}/resume")
+    @RequireRole("STUDENT")
+    public ResponseEntity<ApiResponse<ResumeLearningResponse>> resumeLearning(
+            @RequestHeader("X-User-Id") UUID studentId,
+            @PathVariable UUID courseId) {
+        
+        log.info("Received request to resume learning for student {}, course {}", studentId, courseId);
+        
+        ResumeLearningResponse response = learningProgressService.resumeLearning(studentId, courseId);
+        
+        return ResponseEntity.ok(ApiResponse.success(200, "Resume learning data retrieved", response));
     }
 }
