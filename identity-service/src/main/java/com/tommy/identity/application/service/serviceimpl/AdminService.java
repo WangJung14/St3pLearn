@@ -1,6 +1,7 @@
 package com.tommy.identity.application.service.serviceimpl;
 
 import com.tommy.identity.application.dto.request.AssignRoleRequest;
+import com.tommy.identity.application.dto.response.UserListAdminResponse;
 import com.tommy.identity.application.service.IAdminService;
 import com.tommy.identity.domain.entity.Account;
 import com.tommy.identity.domain.entity.Role;
@@ -12,6 +13,9 @@ import com.tommy.identity.infrastructure.persistence.repository.RoleRepository;
 import com.tommy.identity.infrastructure.persistence.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,5 +75,20 @@ public class AdminService implements IAdminService {
         }
 
         log.info("Changed account status to {} for user {}", status, targetUserId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserListAdminResponse> searchUsers(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Account> accounts = accountRepository.searchUsers(keyword, pageable);
+
+        return accounts.map(account -> UserListAdminResponse.builder()
+                .id(account.getId())
+                .username(account.getUsername())
+                .email(account.getEmail())
+                .status(account.getStatus())
+                .roles(account.getRoles().stream().map(Role::getName).collect(java.util.stream.Collectors.toSet()))
+                .build());
     }
 }

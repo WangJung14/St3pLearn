@@ -2,9 +2,11 @@ package com.tommy.identity.presentation.controller;
 
 import com.tommy.common.security.RequireRole;
 import com.tommy.identity.application.dto.request.AssignRoleRequest;
+import com.tommy.identity.application.dto.response.UserListAdminResponse;
 import com.tommy.identity.application.service.IAdminService;
 import com.tommy.identity.presentation.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,20 @@ import java.util.UUID;
 public class AdminController {
 
     private final IAdminService adminService;
+
+    // Search Users
+    @RequireRole("ADMIN")
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<UserListAdminResponse>>> searchUsers(
+            @RequestParam(value = "keyword", defaultValue = "") String keyword,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        
+        Page<UserListAdminResponse> response = adminService.searchUsers(keyword, page, size);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(200, "User list retrieved successfully", response));
+    }
 
     // Assign Role
     @RequireRole("ADMIN")
