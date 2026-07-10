@@ -17,6 +17,10 @@ public enum ErrorCode {
 
     // Course errors
     COURSE_ALREADY_EXISTS(409, "A course with this title already exists.", HttpStatus.CONFLICT),
+    COMMENT_NOT_FOUND(1202, "Comment not found", HttpStatus.NOT_FOUND),
+
+    // Learning
+    COURSE_NOT_ENROLLED(1301, "You are not enrolled in this course", HttpStatus.FORBIDDEN),
     COURSE_NOT_FOUND(404, "Course not found.", HttpStatus.NOT_FOUND),
     COURSE_NOT_APPROVED(403, "This course has not been approved yet.", HttpStatus.FORBIDDEN),
     COURSE_ALREADY_ARCHIVED(409, "This course has already been archived.", HttpStatus.CONFLICT),

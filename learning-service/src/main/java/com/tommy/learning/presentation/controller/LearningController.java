@@ -2,7 +2,10 @@ package com.tommy.learning.presentation.controller;
 
 import com.tommy.common.response.ApiResponse;
 import com.tommy.common.security.RequireRole;
+import com.tommy.learning.application.dto.request.UpdateProgressRequest;
+import com.tommy.learning.application.service.ILearningProgressService;
 import com.tommy.learning.application.service.impl.LearningService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +20,7 @@ import java.util.UUID;
 @Slf4j
 public class LearningController {
     private final LearningService learningService;
+    private final ILearningProgressService learningProgressService;
 
     @PostMapping("/courses/{courseId}/start")
     @RequireRole({"STUDENT", "INSTRUCTOR", "ADMIN"})
@@ -32,5 +36,20 @@ public class LearningController {
         response.put("lessonId", lessonIdToPlay);
 
         return ResponseEntity.ok(ApiResponse.success(200, "Learning progress initialized", response));
+    }
+
+    @PostMapping("/courses/{courseId}/lessons/{lessonId}/progress")
+    @RequireRole("STUDENT")
+    public ResponseEntity<ApiResponse<Void>> trackProgress(
+            @RequestHeader("X-User-Id") UUID studentId,
+            @PathVariable UUID courseId,
+            @PathVariable UUID lessonId,
+            @Valid @RequestBody UpdateProgressRequest request) {
+
+        log.debug("Received request to track progress for student {}, course {}, lesson {}", studentId, courseId, lessonId);
+
+        learningProgressService.trackProgress(studentId, courseId, lessonId, request);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "Progress tracked successfully", null));
     }
 }
