@@ -66,4 +66,18 @@ public class LearningController {
         
         return ResponseEntity.ok(ApiResponse.success(200, "Resume learning data retrieved", response));
     }
+
+    @PostMapping("/courses/{courseId}/lessons/{lessonId}/complete")
+    @RequireRole("STUDENT")
+    public ResponseEntity<ApiResponse<Void>> completeLesson(
+            @RequestHeader("X-User-Id") UUID studentId,
+            @PathVariable UUID courseId,
+            @PathVariable UUID lessonId) {
+        
+        log.info("Received request to complete lesson {} for student {} in course {}", lessonId, studentId, courseId);
+        
+        learningProgressService.completeLesson(studentId, courseId, lessonId);
+        
+        return ResponseEntity.ok(ApiResponse.success(200, "Lesson marked as complete", null));
+    }
 }

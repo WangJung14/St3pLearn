@@ -9,4 +9,6 @@ public interface ILearningProgressService {
     void trackProgress(UUID studentId, UUID courseId, UUID lessonId, UpdateProgressRequest request);
     
     ResumeLearningResponse resumeLearning(UUID studentId, UUID courseId);
+    
+    void completeLesson(UUID studentId, UUID courseId, UUID lessonId);
 }
