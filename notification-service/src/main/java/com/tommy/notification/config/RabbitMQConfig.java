@@ -16,9 +16,11 @@ public class RabbitMQConfig {
     public static final String VERIFY_EMAIL_QUEUE = "verify_email_queue";
     public static final String PASSWORD_CHANGED_QUEUE = "password_changed_queue";
     public static final String COURSE_VIOLATION_QUEUE = "course_violation_queue";
+    public static final String COURSE_COMPLETED_QUEUE = "course.completed.email.queue";
 
     public static final String AUTH_EXCHANGE = "auth_exchange";
     public static final String CATALOG_EXCHANGE = "catalog_exchange";
+    public static final String COURSE_COMPLETED_EXCHANGE = "course.completed.exchange";
 
     public static final String FORGOT_PASSWORD_ROUTING_KEY = "forgot_password_routing_key";
     public static final String VERIFY_EMAIL_ROUTING_KEY = "verify_email_routing_key";
@@ -73,6 +75,21 @@ public class RabbitMQConfig {
     @Bean
     public Binding bindingCourseViolationQueue(Queue courseViolationQueue, DirectExchange catalogExchange) {
         return BindingBuilder.bind(courseViolationQueue).to(catalogExchange).with(COURSE_VIOLATION_ROUTING_KEY);
+    }
+
+    @Bean
+    public FanoutExchange courseCompletedExchange() {
+        return new FanoutExchange(COURSE_COMPLETED_EXCHANGE);
+    }
+
+    @Bean
+    public Queue courseCompletedQueue() {
+        return new Queue(COURSE_COMPLETED_QUEUE, true);
+    }
+
+    @Bean
+    public Binding courseCompletedBinding(Queue courseCompletedQueue, FanoutExchange courseCompletedExchange) {
+        return BindingBuilder.bind(courseCompletedQueue).to(courseCompletedExchange);
     }
 
     @Bean
