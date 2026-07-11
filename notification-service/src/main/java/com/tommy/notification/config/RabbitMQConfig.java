@@ -3,7 +3,9 @@ package com.tommy.notification.config;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
@@ -24,12 +26,12 @@ public class RabbitMQConfig {
 
     public static final String FORGOT_PASSWORD_ROUTING_KEY = "forgot_password_routing_key";
     public static final String VERIFY_EMAIL_ROUTING_KEY = "verify_email_routing_key";
-    public static final String PASSWORD_CHANGED_ROUTING_KEY = "password_changed_routing_key";
-    public static final String COURSE_VIOLATION_ROUTING_KEY = "course_violation_routing_key";
+    public static final String COURSE_VIOLATION_ROUTING_KEY = "course.violation.key";
+    public static final String NOTIFICATION_EXCHANGE = "notification_exchange";
 
     @Bean
-    public Queue forgotPasswordQueue() {
-        return new Queue(FORGOT_PASSWORD_QUEUE, true);
+    public TopicExchange notificationExchange() {
+        return new TopicExchange(NOTIFICATION_EXCHANGE);
     }
 
     @Bean
@@ -43,8 +45,8 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Binding bindingForgotPasswordQueue(Queue forgotPasswordQueue, DirectExchange authExchange) {
-        return BindingBuilder.bind(forgotPasswordQueue).to(authExchange).with(FORGOT_PASSWORD_ROUTING_KEY);
+    public Queue forgotPasswordQueue() {
+        return new Queue(FORGOT_PASSWORD_QUEUE, true);
     }
 
     @Bean
@@ -53,18 +55,8 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Binding bindingVerifyEmailQueue(Queue verifyEmailQueue, DirectExchange authExchange) {
-        return BindingBuilder.bind(verifyEmailQueue).to(authExchange).with(VERIFY_EMAIL_ROUTING_KEY);
-    }
-
-    @Bean
     public Queue passwordChangedQueue() {
         return new Queue(PASSWORD_CHANGED_QUEUE, true);
-    }
-
-    @Bean
-    public Binding bindingPasswordChangedQueue(Queue passwordChangedQueue, DirectExchange authExchange) {
-        return BindingBuilder.bind(passwordChangedQueue).to(authExchange).with(PASSWORD_CHANGED_ROUTING_KEY);
     }
 
     @Bean
@@ -73,8 +65,18 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Binding bindingCourseViolationQueue(Queue courseViolationQueue, DirectExchange catalogExchange) {
-        return BindingBuilder.bind(courseViolationQueue).to(catalogExchange).with(COURSE_VIOLATION_ROUTING_KEY);
+    public Binding forgotPasswordBinding(Queue forgotPasswordQueue, DirectExchange authExchange) {
+        return BindingBuilder.bind(forgotPasswordQueue).to(authExchange).with(FORGOT_PASSWORD_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding verifyEmailBinding(Queue verifyEmailQueue, DirectExchange authExchange) {
+        return BindingBuilder.bind(verifyEmailQueue).to(authExchange).with(VERIFY_EMAIL_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding courseViolationBinding(Queue courseViolationQueue, TopicExchange notificationExchange) {
+        return BindingBuilder.bind(courseViolationQueue).to(notificationExchange).with(COURSE_VIOLATION_ROUTING_KEY);
     }
 
     @Bean
