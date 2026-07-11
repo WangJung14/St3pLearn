@@ -70,6 +70,10 @@ public enum ErrorCode {
     // Question Bank
     QUESTION_BANK_NOT_FOUND(404, "Question bank not found.", HttpStatus.NOT_FOUND),
     QUESTION_BANK_ACCESS_DENIED(403, "You do not have permission to modify this question bank.", HttpStatus.FORBIDDEN),
+    // Question
+    QUESTION_NOT_FOUND(404, "Question not found.", HttpStatus.NOT_FOUND),
+    QUESTION_ACCESS_DENIED(403, "You do not have permission to modify this question.", HttpStatus.FORBIDDEN),
+    INVALID_QUESTION_DATA(400, "Invalid question data provided.", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;
