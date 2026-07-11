@@ -66,6 +66,10 @@ public enum ErrorCode {
 
     // Report
     REPORT_NOT_FOUND(404, "Report not found.", HttpStatus.NOT_FOUND),
+    
+    // Question Bank
+    QUESTION_BANK_NOT_FOUND(404, "Question bank not found.", HttpStatus.NOT_FOUND),
+    QUESTION_BANK_ACCESS_DENIED(403, "You do not have permission to modify this question bank.", HttpStatus.FORBIDDEN),
     ;
 
     private final int code;
