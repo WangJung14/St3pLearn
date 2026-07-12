@@ -7,7 +7,7 @@ spring:
 
   # --- CẤU HÌNH KẾT NỐI POSTGRESQL ---
   datasource:
-    url: jdbc:postgresql://localhost:5432/st3plearn
+    url: jdbc:postgresql://localhost:5432/identity_db
     username: admin
     password: admin123
     driver-class-name: org.postgresql.Driver
@@ -25,6 +25,16 @@ spring:
   flyway:
     enabled: false
 
+  redis:
+    host: localhost
+    port: 6379
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin123
+
 # --- CẤU HÌNH KẾT NỐI TRẠM DANH BẠ ---
 eureka:
   client:
@@ -32,3 +42,9 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
   instance:
     prefer-ip-address: true
+
+jwt:
+  secret : VGhpc0lzQVN0cm9uZ0pXVFNlY3JldEtleUZvckhTMjU2MjAyNg==
+  expiration : 86400000
+  refresh-expiration: 604800000
+

@@ -1,0 +1,51 @@
+server:
+  port: 8083
+spring:
+  application:
+    name: learning-service
+
+  # --- CẤU HÌNH KẾT NỐI POSTGRESQL ---
+  datasource:
+    url: jdbc:postgresql://localhost:5432/learning_db
+    username: admin
+    password: admin123
+    driver-class-name: org.postgresql.Driver
+
+  # --- CẤU HÌNH HIBERNATE ---
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # --- CẤU HÌNH KẾT NỐI RABBITMQ (AMQP) ---
+  # Bắt buộc phải có để lát bắn Event StudentEnrolled
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin123
+
+  # --- CẤU HÌNH REDIS CACHE ---
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+# --- CẤU HÌNH KẾT NỐI TRẠM DANH BẠ EUREKA ---
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+# --- CẤU HÌNH LOGGING ---
+logging:
+  level:
+    org.springframework.web: INFO
+    com.tommy.learning: DEBUG
+    org.hibernate.SQL: DEBUG

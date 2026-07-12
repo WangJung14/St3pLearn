@@ -1,0 +1,101 @@
+package com.tommy.notification.config;
+
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.FanoutExchange;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class RabbitMQConfig {
+
+    public static final String FORGOT_PASSWORD_QUEUE = "forgot_password_queue";
+    public static final String VERIFY_EMAIL_QUEUE = "verify_email_queue";
+    public static final String PASSWORD_CHANGED_QUEUE = "password_changed_queue";
+    public static final String COURSE_VIOLATION_QUEUE = "course_violation_queue";
+    public static final String COURSE_COMPLETED_QUEUE = "course.completed.email.queue";
+
+    public static final String AUTH_EXCHANGE = "auth_exchange";
+    public static final String CATALOG_EXCHANGE = "catalog_exchange";
+    public static final String COURSE_COMPLETED_EXCHANGE = "course.completed.exchange";
+
+    public static final String FORGOT_PASSWORD_ROUTING_KEY = "forgot_password_routing_key";
+    public static final String VERIFY_EMAIL_ROUTING_KEY = "verify_email_routing_key";
+    public static final String COURSE_VIOLATION_ROUTING_KEY = "course.violation.key";
+    public static final String NOTIFICATION_EXCHANGE = "notification_exchange";
+
+    @Bean
+    public TopicExchange notificationExchange() {
+        return new TopicExchange(NOTIFICATION_EXCHANGE);
+    }
+
+    @Bean
+    public DirectExchange authExchange() {
+        return new DirectExchange(AUTH_EXCHANGE);
+    }
+
+    @Bean
+    public DirectExchange catalogExchange() {
+        return new DirectExchange(CATALOG_EXCHANGE);
+    }
+
+    @Bean
+    public Queue forgotPasswordQueue() {
+        return new Queue(FORGOT_PASSWORD_QUEUE, true);
+    }
+
+    @Bean
+    public Queue verifyEmailQueue() {
+        return new Queue(VERIFY_EMAIL_QUEUE, true);
+    }
+
+    @Bean
+    public Queue passwordChangedQueue() {
+        return new Queue(PASSWORD_CHANGED_QUEUE, true);
+    }
+
+    @Bean
+    public Queue courseViolationQueue() {
+        return new Queue(COURSE_VIOLATION_QUEUE, true);
+    }
+
+    @Bean
+    public Binding forgotPasswordBinding(Queue forgotPasswordQueue, DirectExchange authExchange) {
+        return BindingBuilder.bind(forgotPasswordQueue).to(authExchange).with(FORGOT_PASSWORD_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding verifyEmailBinding(Queue verifyEmailQueue, DirectExchange authExchange) {
+        return BindingBuilder.bind(verifyEmailQueue).to(authExchange).with(VERIFY_EMAIL_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding courseViolationBinding(Queue courseViolationQueue, TopicExchange notificationExchange) {
+        return BindingBuilder.bind(courseViolationQueue).to(notificationExchange).with(COURSE_VIOLATION_ROUTING_KEY);
+    }
+
+    @Bean
+    public FanoutExchange courseCompletedExchange() {
+        return new FanoutExchange(COURSE_COMPLETED_EXCHANGE);
+    }
+
+    @Bean
+    public Queue courseCompletedQueue() {
+        return new Queue(COURSE_COMPLETED_QUEUE, true);
+    }
+
+    @Bean
+    public Binding courseCompletedBinding(Queue courseCompletedQueue, FanoutExchange courseCompletedExchange) {
+        return BindingBuilder.bind(courseCompletedQueue).to(courseCompletedExchange);
+    }
+
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+}

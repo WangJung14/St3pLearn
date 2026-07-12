@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thông báo vi phạm chính sách khóa học</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { background-color: #ffffff; padding: 30px; border-radius: 8px; max-width: 600px; margin: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .header { text-align: center; color: #d9534f; margin-bottom: 20px; }
+        .content { font-size: 16px; color: #333333; line-height: 1.6; }
+        .footer { font-size: 12px; color: #888888; text-align: center; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="header">Cảnh báo vi phạm khóa học</h2>
+        <div class="content">
+            <p>Xin chào Giảng viên,</p>
+            <p>Chúng tôi rất tiếc phải thông báo rằng khóa học <strong><span th:text="${courseTitle}"></span></strong> của bạn đã bị khóa tạm thời (soft-deleted) do có dấu hiệu vi phạm chính sách của St3pLearn.</p>
+            <p><strong>Nguyên nhân vi phạm:</strong></p>
+            <p style="background-color: #fcf8e3; padding: 10px; border-left: 4px solid #faebcc;">
+                <span th:text="${reason}"></span>
+            </p>
+            <p>Vui lòng kiểm tra lại nội dung khóa học và tuân thủ các quy định của chúng tôi. Nếu bạn cho rằng đây là một sự nhầm lẫn, vui lòng liên hệ với Đội ngũ Hỗ trợ St3pLearn để được giải quyết.</p>
+            <p>Trân trọng,<br/>Đội ngũ quản trị viên St3pLearn</p>
+        </div>
+        <div class="footer">
+            <p>Đây là email tự động, vui lòng không trả lời email này.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -16,6 +16,7 @@
     <description>Parent POM for st3p-learn microservices</description>
 
     <modules>
+        <module>common-library</module>
         <module>discovery-server</module>
         <module>api-gateway</module>
         <module>identity-service</module>
@@ -24,6 +25,7 @@
         <module>learning-service</module>
         <module>social-service</module>
         <module>admin-service</module>
+        <module>notification-service</module>
     </modules>
 
     <properties>
@@ -31,6 +33,7 @@
         <spring-cloud.version>2023.0.2</spring-cloud.version>
         <jjwt.version>0.12.6</jjwt.version>
         <poi.version>5.2.5</poi.version>
+        <springdoc-openapi.version>2.5.0</springdoc-openapi.version>
     </properties>
 
     <dependencyManagement>
@@ -50,6 +53,10 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
