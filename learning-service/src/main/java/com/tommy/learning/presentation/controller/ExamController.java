@@ -6,9 +6,11 @@ import com.tommy.learning.application.dto.request.CreateExamRequest;
 import com.tommy.learning.application.dto.request.UpdateExamQuestionsRequest;
 import com.tommy.learning.application.dto.request.UpdateExamRequest;
 import com.tommy.learning.application.dto.request.UpdateExamStatusRequest;
+import com.tommy.learning.application.dto.request.GradeSubmissionRequest;
 import com.tommy.learning.application.dto.request.SubmitExamRequest;
 import com.tommy.learning.application.dto.response.ExamAttemptResponse;
 import com.tommy.learning.application.dto.response.ExamResponse;
+import com.tommy.learning.application.dto.response.ExamResultResponse;
 import com.tommy.learning.application.dto.response.StartExamResponse;
 import com.tommy.learning.application.service.IExamService;
 import com.tommy.learning.domain.enums.ExamAttemptStatus;
@@ -147,5 +149,28 @@ public class ExamController {
         Pageable pageable = PageRequest.of(page, size);
         Page<ExamAttemptResponse> response = examService.getExamSubmissions(instructorId, examId, status, pageable);
         return ResponseEntity.ok(ApiResponse.success(200, "Fetched exam submissions successfully", response));
+    }
+
+    @PutMapping("/exams/submissions/{attemptId}/grade")
+    @RequireRole({"INSTRUCTOR", "TEACHER"})
+    public ResponseEntity<ApiResponse<Void>> gradeSubmission(
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @PathVariable UUID attemptId,
+            @Valid @RequestBody GradeSubmissionRequest request) {
+
+        log.info("Instructor {} grading submission for attempt {}", instructorId, attemptId);
+        examService.gradeSubmission(instructorId, attemptId, request);
+        return ResponseEntity.ok(ApiResponse.success(200, "Exam graded successfully", null));
+    }
+
+    @GetMapping("/exams/attempts/{attemptId}/result")
+    @RequireRole({"STUDENT"})
+    public ResponseEntity<ApiResponse<ExamResultResponse>> getExamResult(
+            @RequestHeader("X-User-Id") UUID studentId,
+            @PathVariable UUID attemptId) {
+
+        log.info("Student {} fetching exam result for attempt {}", studentId, attemptId);
+        ExamResultResponse response = examService.getExamResult(studentId, attemptId);
+        return ResponseEntity.ok(ApiResponse.success(200, "Fetched exam result successfully", response));
     }
 }

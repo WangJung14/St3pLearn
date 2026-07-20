@@ -1,20 +1,8 @@
 Nền tảng Database: Bảng certificates
 ------------------------------------
 
-Trước khi đi vào API, em cần thiết kế bảng này với các trường cốt lõi:
+Trước khi đi vào API, Cần phải đọc DB design để thiết kế table cho certification
 
-*   id: UUID (Khóa chính hệ thống).
-    
-*   certificate\_code: String (Khóa phụ duy nhất - Unique, ví dụ: CERT-UTH-9A8B7C, dùng để verify).
-    
-*   student\_id, course\_id: UUID (Liên kết người học và khóa học).
-    
-*   issue\_date: LocalDateTime (Ngày cấp).
-    
-*   pdf\_url: String (Đường dẫn tải file nếu em lưu lên S3, hoặc bỏ qua nếu em chọn render PDF on-the-fly).
-    
-*   is\_revoked: Boolean (Cờ thu hồi chứng chỉ nếu phát hiện gian lận, mặc định là false).
-    
 
 1\. Teacher - Issue Certificate (Cấp phát thủ công)
 ---------------------------------------------------

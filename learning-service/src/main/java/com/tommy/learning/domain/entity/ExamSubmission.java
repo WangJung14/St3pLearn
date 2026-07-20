@@ -36,6 +36,9 @@ public class ExamSubmission {
     @Column(name = "score")
     private Double score;
 
+    @Column(name = "feedback", columnDefinition = "text")
+    private String feedback;
+
     @Column(name = "graded_at")
     private LocalDateTime gradedAt;
 

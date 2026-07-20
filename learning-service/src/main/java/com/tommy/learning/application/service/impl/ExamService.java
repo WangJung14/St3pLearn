@@ -1,16 +1,21 @@
 package com.tommy.learning.application.service.impl;
 
 import com.tommy.common.exception.AppException;
+import com.tommy.common.exception.AppException;
 import com.tommy.learning.application.dto.request.CreateExamRequest;
+import com.tommy.learning.application.dto.request.GradeSubmissionRequest;
 import com.tommy.learning.application.dto.request.QuestionAnswerRequest;
+import com.tommy.learning.application.dto.request.QuestionGradeRequest;
 import com.tommy.learning.application.dto.request.SubmitExamRequest;
 import com.tommy.learning.application.dto.request.UpdateExamQuestionsRequest;
 import com.tommy.learning.application.dto.request.UpdateExamRequest;
 import com.tommy.learning.application.dto.request.UpdateExamStatusRequest;
 import com.tommy.learning.application.dto.response.ExamAttemptResponse;
 import com.tommy.learning.application.dto.response.ExamResponse;
+import com.tommy.learning.application.dto.response.ExamResultResponse;
 import com.tommy.learning.application.dto.response.QuestionResponse;
 import com.tommy.learning.application.dto.response.StartExamResponse;
+import com.tommy.learning.application.dto.response.StudentExamQuestionResultResponse;
 import com.tommy.learning.application.dto.response.StudentQuestionResponse;
 import com.tommy.learning.application.service.IExamService;
 import com.tommy.learning.infrastructure.client.IdentityClient;
@@ -354,6 +359,104 @@ public class ExamService implements IExamService {
                     .status(attempt.getStatus())
                     .build();
         });
+    }
+
+    @Override
+    @Transactional
+    public void gradeSubmission(UUID instructorId, UUID attemptId, GradeSubmissionRequest request) {
+        log.info("Instructor {} grading submission for attempt {}", instructorId, attemptId);
+
+        ExamAttempt attempt = examAttemptRepository.findById(attemptId)
+                .orElseThrow(() -> new AppException(com.tommy.common.exception.ErrorCode.EXAM_NOT_FOUND));
+
+        Exam exam = getExamAndVerifyOwnership(attempt.getExamId(), instructorId);
+
+        if (attempt.getStatus() != ExamAttemptStatus.NEEDS_GRADING && attempt.getStatus() != ExamAttemptStatus.GRADED) {
+            throw new AppException(com.tommy.common.exception.ErrorCode.EXAM_INVALID_STATE);
+        }
+
+        List<ExamSubmission> submissions = examSubmissionRepository.findByAttemptId(attemptId);
+        
+        for (QuestionGradeRequest gradeReq : request.getGrades()) {
+            ExamSubmission submissionToUpdate = submissions.stream()
+                    .filter(s -> s.getQuestionId().equals(gradeReq.getQuestionId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (submissionToUpdate != null) {
+                submissionToUpdate.setScore(gradeReq.getPointsAwarded());
+                submissionToUpdate.setFeedback(gradeReq.getFeedbackText());
+                submissionToUpdate.setGradedAt(LocalDateTime.now());
+            }
+        }
+
+        examSubmissionRepository.saveAll(submissions);
+
+        double totalScore = submissions.stream()
+                .mapToDouble(s -> s.getScore() != null ? s.getScore() : 0.0)
+                .sum();
+
+        attempt.setScore(totalScore);
+        attempt.setPassed(totalScore >= exam.getPassingScore());
+        attempt.setStatus(ExamAttemptStatus.GRADED);
+
+        examAttemptRepository.save(attempt);
+    }
+
+    @Override
+    public ExamResultResponse getExamResult(UUID studentId, UUID attemptId) {
+        log.info("Student {} fetching exam result for attempt {}", studentId, attemptId);
+
+        ExamAttempt attempt = examAttemptRepository.findById(attemptId)
+                .orElseThrow(() -> new AppException(com.tommy.common.exception.ErrorCode.EXAM_NOT_FOUND));
+
+        if (!attempt.getStudentId().equals(studentId)) {
+            throw new AppException(com.tommy.common.exception.ErrorCode.EXAM_ACCESS_DENIED);
+        }
+
+        if (attempt.getStatus() == ExamAttemptStatus.NEEDS_GRADING) {
+            return ExamResultResponse.builder()
+                    .attemptId(attemptId)
+                    .status(attempt.getStatus())
+                    .message("Bài thi đang chờ giáo viên chấm")
+                    .build();
+        }
+
+        if (attempt.getStatus() != ExamAttemptStatus.GRADED) {
+            return ExamResultResponse.builder()
+                    .attemptId(attemptId)
+                    .status(attempt.getStatus())
+                    .message("Bài thi chưa được nộp hoặc đã quá hạn.")
+                    .build();
+        }
+
+        List<ExamSubmission> submissions = examSubmissionRepository.findByAttemptId(attemptId);
+        List<StudentExamQuestionResultResponse> questionResults = new ArrayList<>();
+
+        for (ExamSubmission sub : submissions) {
+            Question q = questionRepository.findByIdAndIsDeletedFalse(sub.getQuestionId()).orElse(null);
+            if (q != null) {
+                questionResults.add(StudentExamQuestionResultResponse.builder()
+                        .questionId(q.getId())
+                        .type(q.getType())
+                        .content(q.getContent())
+                        .metadata(q.getMetadata()) // DO NOT obfuscate here
+                        .points(q.getPoints())
+                        .studentAnswer(sub.getAnswer())
+                        .score(sub.getScore())
+                        .feedback(sub.getFeedback())
+                        .build());
+            }
+        }
+
+        return ExamResultResponse.builder()
+                .attemptId(attemptId)
+                .status(attempt.getStatus())
+                .score(attempt.getScore())
+                .passed(attempt.getPassed())
+                .message("Kết quả bài thi chi tiết")
+                .questions(questionResults)
+                .build();
     }
 
     private Exam getExamAndVerifyOwnership(UUID examId, UUID instructorId) {
