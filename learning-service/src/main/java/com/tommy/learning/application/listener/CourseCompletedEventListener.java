@@ -2,7 +2,7 @@ package com.tommy.learning.application.listener;
 
 import com.tommy.common.event.CourseCompletedEvent;
 import com.tommy.common.response.ApiResponse;
-import com.tommy.learning.config.RabbitMQConfig;
+import com.tommy.learning.infrastructure.messaging.RabbitMQConfig;
 import com.tommy.learning.domain.entity.Enrollment;
 import com.tommy.learning.domain.enums.EnrollmentStatus;
 import com.tommy.learning.infrastructure.client.CatalogClient;

@@ -16,6 +16,8 @@ import com.tommy.identity.infrastructure.persistence.repository.*;
 import com.tommy.identity.infrastructure.security.JwtTokenProvider;
 import com.tommy.common.event.ForgotPasswordEvent;
 import com.tommy.common.event.VerifyEmailEvent;
+import com.tommy.common.event.UserRegisteredEvent;
+import com.tommy.common.event.UserLoggedInEvent;
 import com.tommy.identity.application.dto.request.VerifyEmailRequest;
 import com.tommy.identity.application.dto.request.ResendVerifyEmailRequest;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -104,6 +106,16 @@ public class AuthService implements IAuthService {
                 .build();
         rabbitTemplate.convertAndSend("auth_exchange", "verify_email_routing_key", event);
         log.info("Generated OTP and sent VerifyEmailEvent for email: {}", request.getEmail());
+
+        // Emit UserRegisteredEvent
+        UserRegisteredEvent userRegisteredEvent = UserRegisteredEvent.builder()
+                .userId(savedAccount.getId())
+                .email(savedAccount.getEmail())
+                .fullName(userProfile.getFullName())
+                .role(studentRole.getName())
+                .registeredAt(LocalDateTime.now())
+                .build();
+        rabbitTemplate.convertAndSend("identity.events.exchange", "user.registered", userRegisteredEvent);
 
         // 7. Generate token
         String accessToken = jwtTokenProvider.generateAccessToken(savedAccount.getId(), savedAccount.getUsername(), savedAccount.getRoles());
@@ -196,6 +208,13 @@ public class AuthService implements IAuthService {
                 .success(true)
                 .build();
         loginHistoryRepository.save(loginHistory);
+
+        // Emit UserLoggedInEvent
+        UserLoggedInEvent userLoggedInEvent = UserLoggedInEvent.builder()
+                .userId(account.getId())
+                .loginAt(LocalDateTime.now())
+                .build();
+        rabbitTemplate.convertAndSend("identity.events.exchange", "user.logged_in", userLoggedInEvent);
 
         return AuthResponse.builder()
                 .accessToken(accessToken)
