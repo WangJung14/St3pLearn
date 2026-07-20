@@ -88,6 +88,14 @@ public enum ErrorCode {
     
     // Flashcard Errors
     FLASHCARD_NOT_FOUND(404, "Flashcard not found.", HttpStatus.NOT_FOUND),
+    
+    // Payment/Coupon Errors
+    COUPON_NOT_FOUND(404, "Mã giảm giá không tồn tại hoặc đã bị vô hiệu hóa", HttpStatus.NOT_FOUND),
+    COUPON_EXPIRED(400, "Mã giảm giá đã hết hạn", HttpStatus.BAD_REQUEST),
+    COUPON_NOT_STARTED(400, "Mã giảm giá chưa đến thời gian sử dụng", HttpStatus.BAD_REQUEST),
+    COUPON_LIMIT_REACHED(400, "Mã giảm giá đã hết lượt sử dụng", HttpStatus.BAD_REQUEST),
+    COUPON_INVALID_COURSE(400, "Mã giảm giá không áp dụng cho khóa học này", HttpStatus.BAD_REQUEST),
+    COUPON_ALREADY_USED(400, "Bạn đã sử dụng mã giảm giá này rồi", HttpStatus.BAD_REQUEST),
     EXAM_MAX_ATTEMPTS_REACHED(400, "You have reached the maximum number of attempts for this exam.", HttpStatus.BAD_REQUEST),
     STUDENT_NOT_ENROLLED(403, "You must be enrolled in the course to take this exam.", HttpStatus.FORBIDDEN),
     EXAM_NOT_PUBLISHED(400, "This exam is not published yet.", HttpStatus.BAD_REQUEST),
