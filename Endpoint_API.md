@@ -1,121 +1,121 @@
 ### Identity Service
-searchUsers - [GET] http://localhost:8080/api/admin/users - public api / authenticated
-getUserDetail - [GET] http://localhost:8080/api/admin/users/{userId} - public api / authenticated
-assignRole - [POST] http://localhost:8080/api/admin/users/{userId}/roles - public api / authenticated
-removeRole - [DELETE] http://localhost:8080/api/admin/users/{userId}/roles/{roleName} - public api / authenticated
-suspendUser - [PUT] http://localhost:8080/api/admin/users/{userId}/suspend - public api / authenticated
-lockUser - [PUT] http://localhost:8080/api/admin/users/{userId}/lock - public api / authenticated
-activateUser - [PUT] http://localhost:8080/api/admin/users/{userId}/activate - public api / authenticated
-register - [POST] http://localhost:8080/api/auth/register - public api / authenticated
-login - [POST] http://localhost:8080/api/auth/login - public api / authenticated
-refresh - [POST] http://localhost:8080/api/auth/refresh - public api / authenticated
-logout - [POST] http://localhost:8080/api/auth/logout - public api / authenticated
-forgotPassword - [POST] http://localhost:8080/api/auth/forgot-password - public api / authenticated
-resetPassword - [POST] http://localhost:8080/api/auth/reset-password - public api / authenticated
-verifyEmail - [POST] http://localhost:8080/api/auth/verify-email - public api / authenticated
-resendVerificationEmail - [POST] http://localhost:8080/api/auth/resend-verification-email - public api / authenticated
-getMyProfile - [GET] http://localhost:8080/api/users/me - public api / authenticated
-getPublicProfile - [GET] http://localhost:8080/api/users/p/{publicId} - public api / authenticated
-updateMyProfile - [POST] http://localhost:8080/api/users/me - public api / authenticated
-deactivateMyAccount - [DELETE] http://localhost:8080/api/users/me - public api / authenticated
-getMyLoginHistory - [GET] http://localhost:8080/api/users/me/login-history - public api / authenticated
-changePassword - [POST] http://localhost:8080/api/users/me/password - public api / authenticated
+searchUsers - [GET] /api/admin/users - Role: ADMIN
+getUserDetail - [GET] /api/admin/users/{userId} - Role: ADMIN
+assignRole - [POST] /api/admin/users/{userId}/roles - Role: ADMIN
+removeRole - [DELETE] /api/admin/users/{userId}/roles/{roleName} - Role: ADMIN
+suspendUser - [PUT] /api/admin/users/{userId}/suspend - Role: ADMIN
+lockUser - [PUT] /api/admin/users/{userId}/lock - Role: ADMIN
+activateUser - [PUT] /api/admin/users/{userId}/activate - Role: ADMIN
+register - [POST] /api/auth/register - public api / authenticated
+login - [POST] /api/auth/login - public api / authenticated
+refresh - [POST] /api/auth/refresh - public api / authenticated
+logout - [POST] /api/auth/logout - public api / authenticated
+forgotPassword - [POST] /api/auth/forgot-password - public api / authenticated
+resetPassword - [POST] /api/auth/reset-password - public api / authenticated
+verifyEmail - [POST] /api/auth/verify-email - public api / authenticated
+resendVerificationEmail - [POST] /api/auth/resend-verification-email - public api / authenticated
+getMyProfile - [GET] /api/users/me - public api / authenticated
+getPublicProfile - [GET] /api/users/p/{publicId} - public api / authenticated
+updateMyProfile - [POST] /api/users/me - public api / authenticated
+deactivateMyAccount - [DELETE] /api/users/me - public api / authenticated
+getMyLoginHistory - [GET] /api/users/me/login-history - public api / authenticated
+changePassword - [POST] /api/users/me/password - public api / authenticated
 
 ### Catalog Service
-removeCourse - [POST] http://localhost:8080/api/admin/courses/{courseId}/remove - public api / authenticated
-getReports - [GET] http://localhost:8080/api/admin/reports - public api / authenticated
-processReport - [POST] http://localhost:8080/api/admin/reports/{reportId}/process - public api / authenticated
-getAll - [GET] http://localhost:8080/api/categories - public api / authenticated
-create - [POST] http://localhost:8080/api/categories - public api / authenticated
-update - [PUT] http://localhost:8080/api/categories/{id} - public api / authenticated
-delete - [DELETE] http://localhost:8080/api/categories/{id} - public api / authenticated
-getChapters - [GET] http://localhost:8080/api/courses/{courseId}/chapters - public api / authenticated
-createChapter - [POST] http://localhost:8080/api/courses/{courseId}/chapters - public api / authenticated
-updateChapter - [POST] http://localhost:8080/api/courses/{courseId}/chapters/{chapterId} - public api / authenticated
-deleteChapter - [DELETE] http://localhost:8080/api/courses/{courseId}/chapters/{chapterId} - public api / authenticated
-createCourse - [POST] http://localhost:8080/api/courses - public api / authenticated
-updateCourse - [POST] http://localhost:8080/api/courses/{courseId} - public api / authenticated
-getAllCourses - [GET] http://localhost:8080/api/courses - public api / authenticated
-getCourse - [GET] http://localhost:8080/api/courses/{courseId} - public api / authenticated
-archiveCourse - [DELETE] http://localhost:8080/api/courses/{courseId}/archive - public api / authenticated
-assignTaxonomy - [POST] http://localhost:8080/api/courses/{courseId}/taxonomy - public api / authenticated
-submitForApproval - [POST] http://localhost:8080/api/courses/{courseId}/submit - public api / authenticated
-processCourseApproval - [POST] http://localhost:8080/api/courses/approvals/{requestId}/process - public api / authenticated
-getPendingApprovals - [GET] http://localhost:8080/api/courses/approvals/pending - public api / authenticated
-getApprovalDetail - [GET] http://localhost:8080/api/courses/approvals/{requestId} - public api / authenticated
-searchPublicCourses - [GET] http://localhost:8080/api/courses/p/search - public api / authenticated
-getMyCourses - [GET] http://localhost:8080/api/courses/my-courses - public api / authenticated
-cancelCourseApproval - [POST] http://localhost:8080/api/courses/{courseId}/cancel-submit - public api / authenticated
-publishCourse - [POST] http://localhost:8080/api/courses/{courseId}/publish - public api / authenticated
-getPublicCourseDetail - [GET] http://localhost:8080/api/courses/p/{slug} - public api / authenticated
-getBulkSummaries - [POST] http://localhost:8080/api/courses/bulk-summaries - public api / authenticated
-migrateCourseStatuses - [POST] http://localhost:8080/api/courses/admin/migrate-status - public api / authenticated
-submitReview - [POST] http://localhost:8080/api/courses/{courseId}/reviews - public api / authenticated
-getCourseReviews - [GET] http://localhost:8080/api/courses/p/{courseId}/reviews - public api / authenticated
-updateReview - [POST] http://localhost:8080/api/courses/{courseId}/reviews/{reviewId} - public api / authenticated
-deleteReview - [DELETE] http://localhost:8080/api/courses/{courseId}/reviews/{reviewId} - public api / authenticated
-replyToReview - [POST] http://localhost:8080/api/courses/{courseId}/reviews/{reviewId}/reply - public api / authenticated
-getLessons - [GET] http://localhost:8080/api/courses/{courseId}/chapters/{chapterId}/lessons - public api / authenticated
-createLesson - [POST] http://localhost:8080/api/courses/{courseId}/chapters/{chapterId}/lessons - public api / authenticated
-updateLesson - [POST] http://localhost:8080/api/courses/{courseId}/chapters/{chapterId}/lessons/{lessonId} - public api / authenticated
-deleteLesson - [DELETE] http://localhost:8080/api/courses/{courseId}/chapters/{chapterId}/lessons/{lessonId} - public api / authenticated
-getUploadSignature - [GET] http://localhost:8080/api/courses/{courseId}/chapters/{chapterId}/lessons/upload-signature - public api / authenticated
-saveLessonContent - [POST] http://localhost:8080/api/courses/{courseId}/chapters/{chapterId}/lessons/{lessonId}/content - public api / authenticated
-createReport - [POST] http://localhost:8080/api/reports - public api / authenticated
-getAll - [GET] http://localhost:8080/api/tags - public api / authenticated
-create - [POST] http://localhost:8080/api/tags - public api / authenticated
-update - [PUT] http://localhost:8080/api/tags/{id} - public api / authenticated
-delete - [DELETE] http://localhost:8080/api/tags/{id} - public api / authenticated
-saveCourse - [POST] http://localhost:8080/api/wishlists/course/{courseId} - public api / authenticated
-removeCourse - [DELETE] http://localhost:8080/api/wishlists/courses/{courseId} - public api / authenticated
-getMyWishlist - [GET] http://localhost:8080/api/wishlists - public api / authenticated
+removeCourse - [POST] /api/admin/courses/{courseId}/remove - Role: ADMIN
+getReports - [GET] /api/admin/reports - Role: ADMIN
+processReport - [POST] /api/admin/reports/{reportId}/process - Role: ADMIN
+getAll - [GET] /api/categories - public api / authenticated
+create - [POST] /api/categories - public api / authenticated
+update - [PUT] /api/categories/{id} - Role: ADMIN
+delete - [DELETE] /api/categories/{id} - Role: ADMIN
+getChapters - [GET] /api/courses/{courseId}/chapters - public api / authenticated
+createChapter - [POST] /api/courses/{courseId}/chapters - public api / authenticated
+updateChapter - [POST] /api/courses/{courseId}/chapters/{chapterId} - Role: TEACHER, ADMIN
+deleteChapter - [DELETE] /api/courses/{courseId}/chapters/{chapterId} - Role: ADMIN,TEACHER
+createCourse - [POST] /api/courses - public api / authenticated
+updateCourse - [POST] /api/courses/{courseId} - public api / authenticated
+getAllCourses - [GET] /api/courses - public api / authenticated
+getCourse - [GET] /api/courses/{courseId} - Role: ADMIN
+archiveCourse - [DELETE] /api/courses/{courseId}/archive - public api / authenticated
+assignTaxonomy - [POST] /api/courses/{courseId}/taxonomy - Role: TEACHER, ADMIN
+submitForApproval - [POST] /api/courses/{courseId}/submit - Role: TEACHER, ADMIN
+processCourseApproval - [POST] /api/courses/approvals/{requestId}/process - Role: ADMIN,TEACHER
+getPendingApprovals - [GET] /api/courses/approvals/pending - Role: ADMIN
+getApprovalDetail - [GET] /api/courses/approvals/{requestId} - Role: ADMIN
+searchPublicCourses - [GET] /api/courses/p/search - Role: ADMIN
+getMyCourses - [GET] /api/courses/my-courses - public api / authenticated
+cancelCourseApproval - [POST] /api/courses/{courseId}/cancel-submit - Role: TEACHER
+publishCourse - [POST] /api/courses/{courseId}/publish - Role: TEACHER
+getPublicCourseDetail - [GET] /api/courses/p/{slug} - Role: TEACHER
+getBulkSummaries - [POST] /api/courses/bulk-summaries - public api / authenticated
+migrateCourseStatuses - [POST] /api/courses/admin/migrate-status - public api / authenticated
+submitReview - [POST] /api/courses/{courseId}/reviews - public api / authenticated
+getCourseReviews - [GET] /api/courses/p/{courseId}/reviews - Role: STUDENT
+updateReview - [POST] /api/courses/{courseId}/reviews/{reviewId} - public api / authenticated
+deleteReview - [DELETE] /api/courses/{courseId}/reviews/{reviewId} - Role: STUDENT
+replyToReview - [POST] /api/courses/{courseId}/reviews/{reviewId}/reply - Role: STUDENT
+getLessons - [GET] /api/courses/{courseId}/chapters/{chapterId}/lessons - public api / authenticated
+createLesson - [POST] /api/courses/{courseId}/chapters/{chapterId}/lessons - public api / authenticated
+updateLesson - [POST] /api/courses/{courseId}/chapters/{chapterId}/lessons/{lessonId} - Role: ADMIN,TEACHER
+deleteLesson - [DELETE] /api/courses/{courseId}/chapters/{chapterId}/lessons/{lessonId} - Role: ADMIN,TEACHER
+getUploadSignature - [GET] /api/courses/{courseId}/chapters/{chapterId}/lessons/upload-signature - Role: ADMIN,TEACHER
+saveLessonContent - [POST] /api/courses/{courseId}/chapters/{chapterId}/lessons/{lessonId}/content - Role: TEACHER, ADMIN
+createReport - [POST] /api/reports - Role: STUDENT, TEACHER
+getAll - [GET] /api/tags - public api / authenticated
+create - [POST] /api/tags - public api / authenticated
+update - [PUT] /api/tags/{id} - Role: ADMIN
+delete - [DELETE] /api/tags/{id} - Role: ADMIN
+saveCourse - [POST] /api/wishlists/course/{courseId} - public api / authenticated
+removeCourse - [DELETE] /api/wishlists/courses/{courseId} - Role: STUDENT
+getMyWishlist - [GET] /api/wishlists - Role: STUDENT
 
 ### Learning Service
-issueCertificate - [POST] http://localhost:8080/api/learning/certificates/issue - public api / authenticated
-downloadCertificate - [GET] http://localhost:8080/api/learning/certificates/{certificateId}/download - public api / authenticated
-verifyCertificate - [GET] http://localhost:8080/api/learning/certificates/verify/{certificateCode} - public api / authenticated
-enrollCourse - [POST] http://localhost:8080/api/enrollments - public api / authenticated
-getMyEnrolledCourses - [GET] http://localhost:8080/api/enrollments/my-courses - public api / authenticated
-createExam - [POST] http://localhost:8080/api/learning/exams - public api / authenticated
-updateExamInfo - [PUT] http://localhost:8080/api/learning/exams/{examId} - public api / authenticated
-updateExamQuestions - [PUT] http://localhost:8080/api/learning/exams/{examId}/questions - public api / authenticated
-updateExamStatus - [PUT] http://localhost:8080/api/learning/exams/{examId}/status - public api / authenticated
-deleteExam - [DELETE] http://localhost:8080/api/learning/exams/{examId} - public api / authenticated
-getExamsByInstructor - [GET] http://localhost:8080/api/learning/exams - public api / authenticated
-getExamById - [GET] http://localhost:8080/api/learning/exams/{examId} - public api / authenticated
-startExam - [POST] http://localhost:8080/api/learning/exams/{examId}/attempts - public api / authenticated
-submitExam - [POST] http://localhost:8080/api/learning/exams/attempts/{attemptId}/submit - public api / authenticated
-getExamSubmissions - [GET] http://localhost:8080/api/learning/exams/{examId}/submissions - public api / authenticated
-gradeSubmission - [PUT] http://localhost:8080/api/learning/exams/submissions/{attemptId}/grade - public api / authenticated
-getExamResult - [GET] http://localhost:8080/api/learning/exams/attempts/{attemptId}/result - public api / authenticated
-getDueCards - [GET] http://localhost:8080/api/learning/flashcard-sets/{id}/due-cards - public api / authenticated
-reviewFlashcard - [POST] http://localhost:8080/api/learning/flashcards/{id}/review - public api / authenticated
-getDashboardHistory - [GET] http://localhost:8080/api/learning/dashboard/history - public api / authenticated
-createFlashcardSet - [POST] http://localhost:8080/api/learning/flashcard-sets - public api / authenticated
-cloneFlashcardSet - [POST] http://localhost:8080/api/learning/flashcard-sets/{id}/clone - public api / authenticated
-startLearning - [POST] http://localhost:8080/api/learning/courses/{courseId}/start - public api / authenticated
-trackProgress - [POST] http://localhost:8080/api/learning/courses/{courseId}/lessons/{lessonId}/progress - public api / authenticated
-resumeLearning - [GET] http://localhost:8080/api/learning/courses/{courseId}/resume - public api / authenticated
-completeLesson - [POST] http://localhost:8080/api/learning/courses/{courseId}/lessons/{lessonId}/complete - public api / authenticated
-createBank - [POST] http://localhost:8080/api/learning/question-banks - public api / authenticated
-updateBank - [PUT] http://localhost:8080/api/learning/question-banks/{bankId} - public api / authenticated
-deleteBank - [DELETE] http://localhost:8080/api/learning/question-banks/{bankId} - public api / authenticated
-getMyBanks - [GET] http://localhost:8080/api/learning/question-banks - public api / authenticated
-createQuestion - [POST] http://localhost:8080/api/learning/question-banks/{bankId}/questions - public api / authenticated
-updateQuestion - [PUT] http://localhost:8080/api/learning/questions/{questionId} - public api / authenticated
-deleteQuestion - [DELETE] http://localhost:8080/api/learning/questions/{questionId} - public api / authenticated
-getQuestionsByBankId - [GET] http://localhost:8080/api/learning/question-banks/{bankId}/questions - public api / authenticated
-importVocabulary - [POST] http://localhost:8080/api/learning/vocabulary/import - public api / authenticated
+issueCertificate - [POST] /api/learning/certificates/issue - public api / authenticated
+downloadCertificate - [GET] /api/learning/certificates/{certificateId}/download - Role: INSTRUCTOR, TEACHER
+verifyCertificate - [GET] /api/learning/certificates/verify/{certificateCode} - Role: STUDENT
+enrollCourse - [POST] /api/enrollments - public api / authenticated
+getMyEnrolledCourses - [GET] /api/enrollments/my-courses - Role: STUDENT
+createExam - [POST] /api/learning/exams - public api / authenticated
+updateExamInfo - [PUT] /api/learning/exams/{examId} - Role: INSTRUCTOR, TEACHER
+updateExamQuestions - [PUT] /api/learning/exams/{examId}/questions - Role: INSTRUCTOR, TEACHER
+updateExamStatus - [PUT] /api/learning/exams/{examId}/status - Role: INSTRUCTOR, TEACHER
+deleteExam - [DELETE] /api/learning/exams/{examId} - Role: INSTRUCTOR, TEACHER
+getExamsByInstructor - [GET] /api/learning/exams - Role: INSTRUCTOR, TEACHER
+getExamById - [GET] /api/learning/exams/{examId} - Role: INSTRUCTOR, TEACHER
+startExam - [POST] /api/learning/exams/{examId}/attempts - Role: INSTRUCTOR, TEACHER
+submitExam - [POST] /api/learning/exams/attempts/{attemptId}/submit - Role: STUDENT
+getExamSubmissions - [GET] /api/learning/exams/{examId}/submissions - Role: STUDENT
+gradeSubmission - [PUT] /api/learning/exams/submissions/{attemptId}/grade - Role: INSTRUCTOR, TEACHER
+getExamResult - [GET] /api/learning/exams/attempts/{attemptId}/result - Role: INSTRUCTOR, TEACHER
+getDueCards - [GET] /api/learning/flashcard-sets/{id}/due-cards - public api / authenticated
+reviewFlashcard - [POST] /api/learning/flashcards/{id}/review - Role: STUDENT
+getDashboardHistory - [GET] /api/learning/dashboard/history - Role: STUDENT
+createFlashcardSet - [POST] /api/learning/flashcard-sets - public api / authenticated
+cloneFlashcardSet - [POST] /api/learning/flashcard-sets/{id}/clone - Role: INSTRUCTOR, TEACHER
+startLearning - [POST] /api/learning/courses/{courseId}/start - public api / authenticated
+trackProgress - [POST] /api/learning/courses/{courseId}/lessons/{lessonId}/progress - Role: STUDENT, INSTRUCTOR, ADMIN
+resumeLearning - [GET] /api/learning/courses/{courseId}/resume - Role: STUDENT
+completeLesson - [POST] /api/learning/courses/{courseId}/lessons/{lessonId}/complete - Role: STUDENT
+createBank - [POST] /api/learning/question-banks - public api / authenticated
+updateBank - [PUT] /api/learning/question-banks/{bankId} - Role: INSTRUCTOR, TEACHER
+deleteBank - [DELETE] /api/learning/question-banks/{bankId} - Role: INSTRUCTOR, TEACHER
+getMyBanks - [GET] /api/learning/question-banks - Role: INSTRUCTOR, TEACHER
+createQuestion - [POST] /api/learning/question-banks/{bankId}/questions - public api / authenticated
+updateQuestion - [PUT] /api/learning/questions/{questionId} - Role: INSTRUCTOR, TEACHER
+deleteQuestion - [DELETE] /api/learning/questions/{questionId} - Role: INSTRUCTOR, TEACHER
+getQuestionsByBankId - [GET] /api/learning/question-banks/{bankId}/questions - Role: INSTRUCTOR, TEACHER
+importVocabulary - [POST] /api/learning/vocabulary/import - public api / authenticated
 
 ### Payment Service
-createCoupon - [POST] http://localhost:8080/api/payment/coupons - public api / authenticated
-calculateDiscount - [POST] http://localhost:8080/api/payment/coupons/calculate - public api / authenticated
-checkout - [POST] http://localhost:8080/api/payment/orders/checkout - public api / authenticated
-vnpayCallback - [GET] http://localhost:8080/api/payment/vnpay/callback - public api / authenticated
-requestRefund - [POST] http://localhost:8080/api/payment/refunds - public api / authenticated
-approveRefund - [POST] http://localhost:8080/api/payment/refunds/{id}/approve - public api / authenticated
+createCoupon - [POST] /api/payment/coupons - public api / authenticated
+calculateDiscount - [POST] /api/payment/coupons/calculate - Role: ADMIN, INSTRUCTOR
+checkout - [POST] /api/payment/orders/checkout - public api / authenticated
+vnpayCallback - [GET] /api/payment/vnpay/callback - public api / authenticated
+requestRefund - [POST] /api/payment/refunds - public api / authenticated
+approveRefund - [POST] /api/payment/refunds/{id}/approve - Role: STUDENT
 
 ### Admin Service
-getDashboard - [GET] http://localhost:8080/api/admin/dashboard - public api / authenticated
-exportRevenueReport - [GET] http://localhost:8080/api/admin/reports/revenue/export - public api / authenticated
-exportCourseReport - [GET] http://localhost:8080/api/admin/reports/course/export - public api / authenticated
+getDashboard - [GET] /api/admin/dashboard - public api / authenticated
+exportRevenueReport - [GET] /api/admin/reports/revenue/export - public api / authenticated
+exportCourseReport - [GET] /api/admin/reports/course/export - public api / authenticated
