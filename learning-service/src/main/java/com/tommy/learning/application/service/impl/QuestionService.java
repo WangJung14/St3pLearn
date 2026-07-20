@@ -8,7 +8,9 @@ import com.tommy.learning.application.service.IQuestionService;
 import com.tommy.learning.domain.entity.Question;
 import com.tommy.learning.domain.entity.QuestionBank;
 import com.tommy.learning.domain.entity.json.Option;
+import com.tommy.learning.domain.enums.ExamStatus;
 import com.tommy.learning.domain.enums.QuestionType;
+import com.tommy.learning.infrastructure.persistence.repository.ExamQuestionRepository;
 import com.tommy.learning.infrastructure.persistence.repository.QuestionBankRepository;
 import com.tommy.learning.infrastructure.persistence.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ public class QuestionService implements IQuestionService {
 
     private final QuestionRepository questionRepository;
     private final QuestionBankRepository questionBankRepository;
+    private final ExamQuestionRepository examQuestionRepository;
 
     @Override
     @Transactional
@@ -126,9 +129,8 @@ public class QuestionService implements IQuestionService {
         }
     }
 
-    // Mock method for Phase 7
     private boolean checkIfQuestionUsedInPublishedExam(UUID questionId) {
-        return false;
+        return examQuestionRepository.existsByQuestionIdAndExam_Status(questionId, ExamStatus.PUBLISHED);
     }
 
     private QuestionResponse mapToResponse(Question question) {

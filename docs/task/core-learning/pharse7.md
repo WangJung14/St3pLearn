@@ -30,4 +30,4 @@
 
 **Đặc tả API:**
 
-**MethodEndpointPayload chínhPOST**/api/learning/exams{ "title": "Midterm", "timeLimit": 60, "questionIds": \["uuid1", "uuid2"\] }**PUT**/api/learning/exams/{examId}/questionsCập nhật lại danh sách và thứ tự câu hỏi**PUT**/api/learning/exams/{examId}/statusChuyển trạng thái từ DRAFT sang PUBLISHED
+**MethodEndpointPayload chínhPOST**/api/learning/exams{ "title": "Midterm", "timeLimit": 60, "questionIds": \["uuid1", "uuid2"\] }**PUT**/api/learning/exams/{examId}/questionsCập nhật lại danh sách và thứ tự câu hỏi**PUT**/api/learning/exams/{examId}/statusChuyển trạng thái từ DRAFT sang PUBLISHED,...

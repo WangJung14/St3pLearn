@@ -74,6 +74,11 @@ public enum ErrorCode {
     QUESTION_NOT_FOUND(404, "Question not found.", HttpStatus.NOT_FOUND),
     QUESTION_ACCESS_DENIED(403, "You do not have permission to modify this question.", HttpStatus.FORBIDDEN),
     INVALID_QUESTION_DATA(400, "Invalid question data provided.", HttpStatus.BAD_REQUEST),
+    
+    // Exam
+    EXAM_NOT_FOUND(404, "Exam not found.", HttpStatus.NOT_FOUND),
+    EXAM_ACCESS_DENIED(403, "You do not have permission to access this exam.", HttpStatus.FORBIDDEN),
+    EXAM_INVALID_STATE(400, "Invalid state operation for exam.", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

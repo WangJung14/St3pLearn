@@ -1,0 +1,106 @@
+package com.tommy.learning.presentation.controller;
+
+import com.tommy.common.response.ApiResponse;
+import com.tommy.common.security.RequireRole;
+import com.tommy.learning.application.dto.request.CreateExamRequest;
+import com.tommy.learning.application.dto.request.UpdateExamQuestionsRequest;
+import com.tommy.learning.application.dto.request.UpdateExamRequest;
+import com.tommy.learning.application.dto.request.UpdateExamStatusRequest;
+import com.tommy.learning.application.dto.response.ExamResponse;
+import com.tommy.learning.application.service.IExamService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/learning")
+@RequiredArgsConstructor
+@Slf4j
+public class ExamController {
+
+    private final IExamService examService;
+
+    @PostMapping("/exams")
+    @RequireRole({"INSTRUCTOR", "TEACHER"})
+    public ResponseEntity<ApiResponse<ExamResponse>> createExam(
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @Valid @RequestBody CreateExamRequest request) {
+
+        log.info("Instructor {} creating exam for course {}", instructorId, request.getCourseId());
+        ExamResponse response = examService.createExam(instructorId, request);
+        return ResponseEntity.ok(ApiResponse.success(201, "Exam created successfully", response));
+    }
+
+    @PutMapping("/exams/{examId}")
+    @RequireRole({"INSTRUCTOR", "TEACHER"})
+    public ResponseEntity<ApiResponse<ExamResponse>> updateExamInfo(
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @PathVariable UUID examId,
+            @Valid @RequestBody UpdateExamRequest request) {
+
+        log.info("Instructor {} updating exam {}", instructorId, examId);
+        ExamResponse response = examService.updateExamInfo(instructorId, examId, request);
+        return ResponseEntity.ok(ApiResponse.success(200, "Exam info updated successfully", response));
+    }
+
+    @PutMapping("/exams/{examId}/questions")
+    @RequireRole({"INSTRUCTOR", "TEACHER"})
+    public ResponseEntity<ApiResponse<ExamResponse>> updateExamQuestions(
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @PathVariable UUID examId,
+            @Valid @RequestBody UpdateExamQuestionsRequest request) {
+
+        log.info("Instructor {} updating questions for exam {}", instructorId, examId);
+        ExamResponse response = examService.updateExamQuestions(instructorId, examId, request);
+        return ResponseEntity.ok(ApiResponse.success(200, "Exam questions updated successfully", response));
+    }
+
+    @PutMapping("/exams/{examId}/status")
+    @RequireRole({"INSTRUCTOR", "TEACHER"})
+    public ResponseEntity<ApiResponse<ExamResponse>> updateExamStatus(
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @PathVariable UUID examId,
+            @Valid @RequestBody UpdateExamStatusRequest request) {
+
+        log.info("Instructor {} updating status for exam {}", instructorId, examId);
+        ExamResponse response = examService.updateExamStatus(instructorId, examId, request);
+        return ResponseEntity.ok(ApiResponse.success(200, "Exam status updated successfully", response));
+    }
+
+    @DeleteMapping("/exams/{examId}")
+    @RequireRole({"INSTRUCTOR", "TEACHER"})
+    public ResponseEntity<ApiResponse<Void>> deleteExam(
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @PathVariable UUID examId) {
+
+        log.info("Instructor {} deleting/archiving exam {}", instructorId, examId);
+        examService.deleteExam(instructorId, examId);
+        return ResponseEntity.ok(ApiResponse.success(200, "Exam deleted or archived successfully", null));
+    }
+
+    @GetMapping("/exams")
+    @RequireRole({"INSTRUCTOR", "TEACHER"})
+    public ResponseEntity<ApiResponse<List<ExamResponse>>> getExamsByInstructor(
+            @RequestHeader("X-User-Id") UUID instructorId) {
+
+        log.info("Fetching exams for instructor {}", instructorId);
+        List<ExamResponse> response = examService.getExamsByInstructor(instructorId);
+        return ResponseEntity.ok(ApiResponse.success(200, "Fetched exams successfully", response));
+    }
+
+    @GetMapping("/exams/{examId}")
+    @RequireRole({"INSTRUCTOR", "TEACHER"})
+    public ResponseEntity<ApiResponse<ExamResponse>> getExamById(
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @PathVariable UUID examId) {
+
+        log.info("Fetching exam {} for instructor {}", examId, instructorId);
+        ExamResponse response = examService.getExamById(instructorId, examId);
+        return ResponseEntity.ok(ApiResponse.success(200, "Fetched exam successfully", response));
+    }
+}
