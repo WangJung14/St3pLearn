@@ -12,18 +12,21 @@ public class RabbitMQConfig {
     public static final String IDENTITY_EXCHANGE = "identity.events.exchange";
     public static final String COURSE_EXCHANGE = "course.events.exchange";
     public static final String COURSE_COMPLETED_EXCHANGE = "course.completed.exchange";
+    public static final String CATALOG_EXCHANGE = "catalog.events.exchange";
+    public static final String ADMIN_EXCHANGE = "admin.events.exchange";
 
     // Queues
     public static final String ADMIN_USER_EVENTS_QUEUE = "admin.user.events.queue";
     public static final String ADMIN_COURSE_EVENTS_QUEUE = "admin.course.events.queue";
     public static final String ADMIN_PAYMENT_EVENTS_QUEUE = "admin.payment.events.queue";
+    public static final String ADMIN_REPORT_EVENTS_QUEUE = "admin.report.events.queue";
 
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
-    // Exchanges (if not created by others, Admin can declare them)
+    // Exchanges
     @Bean
     public TopicExchange identityExchange() {
         return new TopicExchange(IDENTITY_EXCHANGE);
@@ -37,6 +40,16 @@ public class RabbitMQConfig {
     @Bean
     public FanoutExchange courseCompletedExchange() {
         return new FanoutExchange(COURSE_COMPLETED_EXCHANGE);
+    }
+
+    @Bean
+    public TopicExchange catalogExchange() {
+        return new TopicExchange(CATALOG_EXCHANGE);
+    }
+
+    @Bean
+    public TopicExchange adminExchange() {
+        return new TopicExchange(ADMIN_EXCHANGE);
     }
 
     // Queues
@@ -55,7 +68,17 @@ public class RabbitMQConfig {
         return new Queue(ADMIN_PAYMENT_EVENTS_QUEUE, true);
     }
 
+    @Bean
+    public Queue adminReportEventsQueue() {
+        return new Queue(ADMIN_REPORT_EVENTS_QUEUE, true);
+    }
+
     // Bindings
+    @Bean
+    public Binding reportSubmittedBinding(Queue adminReportEventsQueue, TopicExchange catalogExchange) {
+        return BindingBuilder.bind(adminReportEventsQueue).to(catalogExchange).with("report.submitted");
+    }
+
     @Bean
     public Binding userRegisteredBinding(Queue adminUserEventsQueue, TopicExchange identityExchange) {
         return BindingBuilder.bind(adminUserEventsQueue).to(identityExchange).with("user.registered");

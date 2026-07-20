@@ -22,6 +22,9 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.tommy.admin.application.service.ModerationService;
+import com.tommy.common.event.ReportSubmittedEvent;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -30,6 +33,7 @@ public class AdminEventListener {
     private final UserReplicaRepository userReplicaRepository;
     private final CourseReplicaRepository courseReplicaRepository;
     private final DailyRevenueRepository dailyRevenueRepository;
+    private final ModerationService moderationService;
     private final ObjectMapper objectMapper;
 
     // --- User Events ---
@@ -134,6 +138,25 @@ public class AdminEventListener {
             log.info("Updated DailyRevenue & CourseRevenue with amount: {}", amount);
         } catch (Exception e) {
             log.error("Failed to parse PaymentCompletedEvent for admin", e);
+        }
+    }
+
+    // --- Report Events ---
+    @RabbitListener(queues = RabbitMQConfig.ADMIN_REPORT_EVENTS_QUEUE)
+    @Transactional
+    public void handleReportEvents(Object event) {
+        log.info("Received Report Event: {}", event);
+        if (event instanceof ReportSubmittedEvent) {
+            ReportSubmittedEvent reportEvent = (ReportSubmittedEvent) event;
+            moderationService.openCaseManual(
+                    reportEvent.getReportId(),
+                    reportEvent.getReporterId(),
+                    reportEvent.getTargetType(),
+                    reportEvent.getTargetId(),
+                    reportEvent.getReason(),
+                    reportEvent.getDescription()
+            );
+            log.info("Opened ModerationCase automatically for Report: {}", reportEvent.getReportId());
         }
     }
 }

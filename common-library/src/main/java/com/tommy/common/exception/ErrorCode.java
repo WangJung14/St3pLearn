@@ -64,8 +64,9 @@ public enum ErrorCode {
     ENROLLMENT_EXISTS(400,"This enrollment already exists.", HttpStatus.BAD_REQUEST),
     ENROLLMENT_NOT_FOUND(404 ,"This enrollment does not exist.", HttpStatus.NOT_FOUND),
 
-    // Report
+    // Report & Moderation
     REPORT_NOT_FOUND(404, "Report not found.", HttpStatus.NOT_FOUND),
+    MODERATION_CASE_NOT_FOUND(404, "Moderation case not found.", HttpStatus.NOT_FOUND),
     
     // Question Bank
     QUESTION_BANK_NOT_FOUND(404, "Question bank not found.", HttpStatus.NOT_FOUND),
