@@ -82,6 +82,7 @@ public enum ErrorCode {
     EXAM_NOT_PUBLISHED(400, "This exam is not published yet.", HttpStatus.BAD_REQUEST),
     EXAM_MAX_ATTEMPTS_REACHED(400, "You have reached the maximum number of attempts for this exam.", HttpStatus.BAD_REQUEST),
     STUDENT_NOT_ENROLLED(403, "You must be enrolled in the course to take this exam.", HttpStatus.FORBIDDEN),
+    EXAM_TIMEOUT(400, "Your exam time has expired.", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

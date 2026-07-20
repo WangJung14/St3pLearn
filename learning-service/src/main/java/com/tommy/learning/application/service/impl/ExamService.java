@@ -2,25 +2,37 @@ package com.tommy.learning.application.service.impl;
 
 import com.tommy.common.exception.AppException;
 import com.tommy.learning.application.dto.request.CreateExamRequest;
+import com.tommy.learning.application.dto.request.QuestionAnswerRequest;
+import com.tommy.learning.application.dto.request.SubmitExamRequest;
 import com.tommy.learning.application.dto.request.UpdateExamQuestionsRequest;
 import com.tommy.learning.application.dto.request.UpdateExamRequest;
 import com.tommy.learning.application.dto.request.UpdateExamStatusRequest;
+import com.tommy.learning.application.dto.response.ExamAttemptResponse;
 import com.tommy.learning.application.dto.response.ExamResponse;
 import com.tommy.learning.application.dto.response.QuestionResponse;
 import com.tommy.learning.application.dto.response.StartExamResponse;
 import com.tommy.learning.application.dto.response.StudentQuestionResponse;
 import com.tommy.learning.application.service.IExamService;
+import com.tommy.learning.infrastructure.client.IdentityClient;
+import com.tommy.learning.infrastructure.client.dto.IdentityUserDetailResponse;
+import com.tommy.common.response.ApiResponse;
 import com.tommy.learning.domain.entity.Exam;
 import com.tommy.learning.domain.entity.ExamAttempt;
 import com.tommy.learning.domain.entity.ExamQuestion;
+import com.tommy.learning.domain.entity.ExamSubmission;
 import com.tommy.learning.domain.entity.Question;
 import com.tommy.learning.domain.entity.json.Option;
 import com.tommy.learning.domain.entity.json.QuestionMetadata;
+import com.tommy.learning.domain.entity.json.StudentAnswer;
 import com.tommy.learning.domain.enums.ExamAttemptStatus;
 import com.tommy.learning.domain.enums.ExamStatus;
+import com.tommy.learning.domain.enums.QuestionType;
 import com.tommy.learning.infrastructure.persistence.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +53,8 @@ public class ExamService implements IExamService {
     private final QuestionBankRepository questionBankRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final ExamAttemptRepository examAttemptRepository;
+    private final ExamSubmissionRepository examSubmissionRepository;
+    private final IdentityClient identityClient;
 
     @Override
     @Transactional
@@ -207,6 +221,139 @@ public class ExamService implements IExamService {
                 .endTime(expiresAt)
                 .questions(questions)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void submitExam(UUID studentId, UUID attemptId, SubmitExamRequest request) {
+        log.info("Student {} submitting exam attempt {}", studentId, attemptId);
+
+        ExamAttempt attempt = examAttemptRepository.findById(attemptId)
+                .orElseThrow(() -> new AppException(com.tommy.common.exception.ErrorCode.EXAM_NOT_FOUND));
+
+        if (!attempt.getStudentId().equals(studentId)) {
+            throw new AppException(com.tommy.common.exception.ErrorCode.EXAM_ACCESS_DENIED);
+        }
+
+        if (attempt.getStatus() != ExamAttemptStatus.STARTED) {
+            throw new AppException(com.tommy.common.exception.ErrorCode.EXAM_INVALID_STATE);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        long GRACE_PERIOD_SECONDS = 60;
+        LocalDateTime gracePeriodEnd = attempt.getExpiresAt().plusSeconds(GRACE_PERIOD_SECONDS);
+
+        if (now.isAfter(gracePeriodEnd)) {
+            attempt.setStatus(ExamAttemptStatus.EXPIRED);
+            examAttemptRepository.save(attempt);
+            throw new AppException(com.tommy.common.exception.ErrorCode.EXAM_TIMEOUT);
+        }
+
+        Exam exam = examRepository.findByIdAndIsDeletedFalse(attempt.getExamId())
+                .orElseThrow(() -> new AppException(com.tommy.common.exception.ErrorCode.EXAM_NOT_FOUND));
+
+        double totalScore = 0.0;
+        boolean hasEssay = false;
+        List<ExamSubmission> submissions = new ArrayList<>();
+
+        for (QuestionAnswerRequest ansReq : request.getAnswers()) {
+            Question q = questionRepository.findByIdAndIsDeletedFalse(ansReq.getQuestionId()).orElse(null);
+            if (q == null) continue;
+
+            double earnedScore = 0.0;
+
+            if (q.getType() == QuestionType.ESSAY) {
+                hasEssay = true;
+                earnedScore = 0.0;
+            } else {
+                if (ansReq.getSelectedOptionIds() != null && !ansReq.getSelectedOptionIds().isEmpty()
+                        && q.getMetadata() != null && q.getMetadata().getOptions() != null) {
+                    
+                    List<String> correctIds = q.getMetadata().getOptions().stream()
+                            .filter(Option::isCorrect)
+                            .map(Option::getId)
+                            .collect(Collectors.toList());
+
+                    List<String> selectedIds = ansReq.getSelectedOptionIds();
+
+                    if (correctIds.size() == selectedIds.size() && correctIds.containsAll(selectedIds)) {
+                        earnedScore = q.getPoints() != null ? q.getPoints() : 0.0;
+                    }
+                }
+            }
+
+            totalScore += earnedScore;
+
+            StudentAnswer studentAnswer = StudentAnswer.builder()
+                    .selectedOptionIds(ansReq.getSelectedOptionIds())
+                    .textAnswer(ansReq.getTextAnswer())
+                    .audioUrl(ansReq.getAudioUrl())
+                    .build();
+
+            ExamSubmission submission = ExamSubmission.builder()
+                    .attemptId(attemptId)
+                    .questionId(q.getId())
+                    .answer(studentAnswer)
+                    .score(earnedScore)
+                    .gradedAt(hasEssay ? null : now)
+                    .build();
+
+            submissions.add(submission);
+        }
+
+        examSubmissionRepository.saveAll(submissions);
+
+        attempt.setSubmittedAt(now);
+        attempt.setScore(totalScore);
+
+        if (hasEssay) {
+            attempt.setStatus(ExamAttemptStatus.NEEDS_GRADING);
+        } else {
+            attempt.setStatus(ExamAttemptStatus.GRADED);
+            attempt.setPassed(totalScore >= exam.getPassingScore());
+        }
+
+        examAttemptRepository.save(attempt);
+    }
+
+    @Override
+    public Page<ExamAttemptResponse> getExamSubmissions(UUID instructorId, UUID examId, ExamAttemptStatus status, Pageable pageable) {
+        log.info("Instructor {} fetching submissions for exam {}", instructorId, examId);
+        getExamAndVerifyOwnership(examId, instructorId);
+
+        Page<ExamAttempt> attempts;
+        if (status != null) {
+            attempts = examAttemptRepository.findByExamIdAndStatus(examId, status, pageable);
+        } else {
+            attempts = examAttemptRepository.findByExamId(examId, pageable);
+        }
+
+        return attempts.map(attempt -> {
+            String studentName = null;
+            String studentEmail = null;
+            try {
+                ResponseEntity<ApiResponse<IdentityUserDetailResponse>> userRes = identityClient.getUserById(attempt.getStudentId());
+                if (userRes.getBody() != null && userRes.getBody().getData() != null) {
+                    studentName = userRes.getBody().getData().getFullName();
+                    studentEmail = userRes.getBody().getData().getEmail();
+                }
+            } catch (Exception e) {
+                log.warn("Failed to fetch user details for studentId {}: {}", attempt.getStudentId(), e.getMessage());
+            }
+
+            return ExamAttemptResponse.builder()
+                    .id(attempt.getId())
+                    .examId(attempt.getExamId())
+                    .studentId(attempt.getStudentId())
+                    .studentName(studentName)
+                    .studentEmail(studentEmail)
+                    .startedAt(attempt.getStartedAt())
+                    .submittedAt(attempt.getSubmittedAt())
+                    .score(attempt.getScore())
+                    .passed(attempt.getPassed())
+                    .status(attempt.getStatus())
+                    .build();
+        });
     }
 
     private Exam getExamAndVerifyOwnership(UUID examId, UUID instructorId) {

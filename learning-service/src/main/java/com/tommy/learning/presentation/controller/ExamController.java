@@ -6,12 +6,18 @@ import com.tommy.learning.application.dto.request.CreateExamRequest;
 import com.tommy.learning.application.dto.request.UpdateExamQuestionsRequest;
 import com.tommy.learning.application.dto.request.UpdateExamRequest;
 import com.tommy.learning.application.dto.request.UpdateExamStatusRequest;
+import com.tommy.learning.application.dto.request.SubmitExamRequest;
+import com.tommy.learning.application.dto.response.ExamAttemptResponse;
 import com.tommy.learning.application.dto.response.ExamResponse;
 import com.tommy.learning.application.dto.response.StartExamResponse;
 import com.tommy.learning.application.service.IExamService;
+import com.tommy.learning.domain.enums.ExamAttemptStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -114,5 +120,32 @@ public class ExamController {
         log.info("Student {} starting exam {}", studentId, examId);
         StartExamResponse response = examService.startExam(studentId, examId);
         return ResponseEntity.ok(ApiResponse.success(201, "Exam started successfully", response));
+    }
+
+    @PostMapping("/exams/attempts/{attemptId}/submit")
+    @RequireRole({"STUDENT"})
+    public ResponseEntity<ApiResponse<Void>> submitExam(
+            @RequestHeader("X-User-Id") UUID studentId,
+            @PathVariable UUID attemptId,
+            @Valid @RequestBody SubmitExamRequest request) {
+
+        log.info("Student {} submitting exam attempt {}", studentId, attemptId);
+        examService.submitExam(studentId, attemptId, request);
+        return ResponseEntity.ok(ApiResponse.success(200, "Exam submitted successfully", null));
+    }
+
+    @GetMapping("/exams/{examId}/submissions")
+    @RequireRole({"INSTRUCTOR", "TEACHER"})
+    public ResponseEntity<ApiResponse<Page<ExamAttemptResponse>>> getExamSubmissions(
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @PathVariable UUID examId,
+            @RequestParam(required = false) ExamAttemptStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        log.info("Instructor {} fetching submissions for exam {}", instructorId, examId);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ExamAttemptResponse> response = examService.getExamSubmissions(instructorId, examId, status, pageable);
+        return ResponseEntity.ok(ApiResponse.success(200, "Fetched exam submissions successfully", response));
     }
 }
