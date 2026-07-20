@@ -77,8 +77,7 @@ public class AdminEventListener {
         }
     }
     
-    @RabbitListener(queuesToDeclare = @org.springframework.amqp.rabbit.annotation.Queue("admin.course.enrolled.queue"),
-                    bindings = @org.springframework.amqp.rabbit.annotation.QueueBinding(
+    @RabbitListener(bindings = @org.springframework.amqp.rabbit.annotation.QueueBinding(
                             value = @org.springframework.amqp.rabbit.annotation.Queue("admin.course.enrolled.queue"),
                             exchange = @org.springframework.amqp.rabbit.annotation.Exchange(value = RabbitMQConfig.COURSE_EXCHANGE, type = "topic"),
                             key = "course.enrolled.key"
@@ -104,7 +103,7 @@ public class AdminEventListener {
     // --- Payment Events ---
     @RabbitListener(bindings = @org.springframework.amqp.rabbit.annotation.QueueBinding(
             value = @org.springframework.amqp.rabbit.annotation.Queue("admin.payment.completed.queue"),
-            exchange = @org.springframework.amqp.rabbit.annotation.Exchange(value = "payment.exchange", type = "topic"),
+            exchange = @org.springframework.amqp.rabbit.annotation.Exchange(value = "payment.exchange", type = "direct"),
             key = "payment.order.completed"
     ))
     @Transactional

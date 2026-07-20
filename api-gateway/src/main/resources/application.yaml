@@ -28,6 +28,16 @@ spring:
           predicates:
             - Path=/api/enrollments/**, /api/learning/**
 
+        - id: payment-service-route
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/payments/**, /api/transactions/**
+
+        - id: admin-service-route
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/admin/**
+
 eureka:
   client:
     service-url:
