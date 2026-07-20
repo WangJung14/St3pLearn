@@ -30,4 +30,19 @@ public class RabbitMQConfig {
                 .to(paymentExchange)
                 .with(PAYMENT_ORDER_COMPLETED_ROUTING_KEY);
     }
+
+    @Bean
+    public org.springframework.amqp.core.TopicExchange adminExchange() {
+        return new org.springframework.amqp.core.TopicExchange("admin.events.exchange");
+    }
+
+    @Bean
+    public org.springframework.amqp.core.Queue paymentConfigEventsQueue() {
+        return new org.springframework.amqp.core.Queue("payment.config.events.queue", true);
+    }
+
+    @Bean
+    public org.springframework.amqp.core.Binding configUpdatedBinding(org.springframework.amqp.core.Queue paymentConfigEventsQueue, org.springframework.amqp.core.TopicExchange adminExchange) {
+        return org.springframework.amqp.core.BindingBuilder.bind(paymentConfigEventsQueue).to(adminExchange).with("config.updated");
+    }
 }

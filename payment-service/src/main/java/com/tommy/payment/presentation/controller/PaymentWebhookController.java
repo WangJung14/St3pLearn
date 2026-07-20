@@ -90,7 +90,7 @@ public class PaymentWebhookController {
             
             // Create outbox event
             String payload = String.format("{\"studentId\":\"%s\", \"courseId\":\"%s\", \"orderId\":\"%s\", \"amount\":%s}", 
-                order.getStudentId(), order.getCourseId(), order.getId(), order.getTotalAmount());
+                order.getStudentId(), order.getCourseId(), order.getId(), order.getFinalAmount());
                 
             PaymentOutboxEvent event = PaymentOutboxEvent.builder()
                     .aggregateId(order.getId().toString())

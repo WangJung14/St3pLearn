@@ -34,6 +34,7 @@ public class AdminEventListener {
     private final CourseReplicaRepository courseReplicaRepository;
     private final DailyRevenueRepository dailyRevenueRepository;
     private final ModerationService moderationService;
+    private final com.tommy.admin.application.service.AuditLogService auditLogService;
     private final ObjectMapper objectMapper;
 
     // --- User Events ---
@@ -156,7 +157,28 @@ public class AdminEventListener {
                     reportEvent.getReason(),
                     reportEvent.getDescription()
             );
-            log.info("Opened ModerationCase automatically for Report: {}", reportEvent.getReportId());
+        }
+    }
+    // --- System Audit Events ---
+    @RabbitListener(queues = RabbitMQConfig.ADMIN_AUDIT_EVENTS_QUEUE)
+    @Transactional
+    public void handleSystemAuditEvents(Object event) {
+        log.info("Received System Audit Event: {}", event);
+        if (event instanceof com.tommy.common.event.SystemAuditEvent) {
+            com.tommy.common.event.SystemAuditEvent auditEvent = (com.tommy.common.event.SystemAuditEvent) event;
+            com.tommy.admin.domain.entity.AuditLog logEntry = com.tommy.admin.domain.entity.AuditLog.builder()
+                    .actorId(auditEvent.getActorId())
+                    .action(auditEvent.getAction())
+                    .targetType(auditEvent.getTargetType())
+                    .targetId(auditEvent.getTargetId())
+                    .oldValue(auditEvent.getOldValue())
+                    .newValue(auditEvent.getNewValue())
+                    .description(auditEvent.getDescription())
+                    .timestamp(auditEvent.getTimestamp() != null ? auditEvent.getTimestamp() : java.time.LocalDateTime.now())
+                    .build();
+            
+            auditLogService.saveLog(logEntry);
+            log.info("Saved SystemAuditEvent to AuditLog");
         }
     }
 }

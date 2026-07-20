@@ -73,7 +73,19 @@ public class RabbitMQConfig {
         return new Queue(ADMIN_REPORT_EVENTS_QUEUE, true);
     }
 
+    public static final String ADMIN_AUDIT_EVENTS_QUEUE = "admin.audit.events.queue";
+
+    @Bean
+    public Queue adminAuditEventsQueue() {
+        return new Queue(ADMIN_AUDIT_EVENTS_QUEUE, true);
+    }
+
     // Bindings
+    @Bean
+    public Binding auditEventsBinding(Queue adminAuditEventsQueue, TopicExchange adminExchange) {
+        return BindingBuilder.bind(adminAuditEventsQueue).to(adminExchange).with("system.audit");
+    }
+
     @Bean
     public Binding reportSubmittedBinding(Queue adminReportEventsQueue, TopicExchange catalogExchange) {
         return BindingBuilder.bind(adminReportEventsQueue).to(catalogExchange).with("report.submitted");
