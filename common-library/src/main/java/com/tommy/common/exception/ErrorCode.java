@@ -85,6 +85,9 @@ public enum ErrorCode {
     CERTIFICATE_NOT_FOUND(404, "Không tìm thấy chứng chỉ hoặc chứng chỉ không tồn tại", HttpStatus.NOT_FOUND),
     REQUIREMENTS_NOT_MET(400, "Chưa đủ điều kiện cấp chứng chỉ (cần hoàn thành 80% tiến độ và vượt qua tất cả bài thi)", HttpStatus.BAD_REQUEST),
     CERTIFICATE_REVOKED(400, "Chứng chỉ đã bị thu hồi", HttpStatus.BAD_REQUEST),
+    
+    // Flashcard Errors
+    FLASHCARD_NOT_FOUND(404, "Flashcard not found.", HttpStatus.NOT_FOUND),
     EXAM_MAX_ATTEMPTS_REACHED(400, "You have reached the maximum number of attempts for this exam.", HttpStatus.BAD_REQUEST),
     STUDENT_NOT_ENROLLED(403, "You must be enrolled in the course to take this exam.", HttpStatus.FORBIDDEN),
     EXAM_NOT_PUBLISHED(400, "This exam is not published yet.", HttpStatus.BAD_REQUEST),
