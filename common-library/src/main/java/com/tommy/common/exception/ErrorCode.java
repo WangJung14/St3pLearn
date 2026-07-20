@@ -78,11 +78,16 @@ public enum ErrorCode {
     // Exam
     EXAM_NOT_FOUND(404, "Exam not found.", HttpStatus.NOT_FOUND),
     EXAM_ACCESS_DENIED(403, "You do not have permission to access this exam.", HttpStatus.FORBIDDEN),
-    EXAM_INVALID_STATE(400, "Invalid state operation for exam.", HttpStatus.BAD_REQUEST),
-    EXAM_NOT_PUBLISHED(400, "This exam is not published yet.", HttpStatus.BAD_REQUEST),
+    EXAM_TIMEOUT(400, "Bài thi đã quá thời gian nộp", HttpStatus.BAD_REQUEST),
+    EXAM_INVALID_STATE(400, "Trạng thái bài thi không hợp lệ cho thao tác này", HttpStatus.BAD_REQUEST),
+
+    // Certificate Errors
+    CERTIFICATE_NOT_FOUND(404, "Không tìm thấy chứng chỉ hoặc chứng chỉ không tồn tại", HttpStatus.NOT_FOUND),
+    REQUIREMENTS_NOT_MET(400, "Chưa đủ điều kiện cấp chứng chỉ (cần hoàn thành 80% tiến độ và vượt qua tất cả bài thi)", HttpStatus.BAD_REQUEST),
+    CERTIFICATE_REVOKED(400, "Chứng chỉ đã bị thu hồi", HttpStatus.BAD_REQUEST),
     EXAM_MAX_ATTEMPTS_REACHED(400, "You have reached the maximum number of attempts for this exam.", HttpStatus.BAD_REQUEST),
     STUDENT_NOT_ENROLLED(403, "You must be enrolled in the course to take this exam.", HttpStatus.FORBIDDEN),
-    EXAM_TIMEOUT(400, "Your exam time has expired.", HttpStatus.BAD_REQUEST),
+    EXAM_NOT_PUBLISHED(400, "This exam is not published yet.", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

@@ -12,4 +12,5 @@ import java.util.UUID;
 public class CatalogCourseResponse {
     private UUID id;
     private String title;
+    private UUID instructorId;
 }

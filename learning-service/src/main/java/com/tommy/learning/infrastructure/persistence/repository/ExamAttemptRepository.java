@@ -15,6 +15,8 @@ public interface ExamAttemptRepository extends JpaRepository<ExamAttempt, UUID> 
     
     long countByStudentIdAndExamId(UUID studentId, UUID examId);
 
+    boolean existsByStudentIdAndExamIdAndPassedTrue(UUID studentId, UUID examId);
+
     boolean existsByExamId(UUID examId);
 
     Page<ExamAttempt> findByExamIdAndStatus(UUID examId, ExamAttemptStatus status, Pageable pageable);

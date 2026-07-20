@@ -13,5 +13,7 @@ public interface ExamRepository extends JpaRepository<Exam, UUID> {
     
     List<Exam> findByInstructorIdAndIsDeletedFalse(UUID instructorId);
     
+    List<Exam> findByCourseIdAndIsDeletedFalse(UUID courseId);
+    
     Optional<Exam> findByIdAndIsDeletedFalse(UUID id);
 }
