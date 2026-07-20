@@ -19,6 +19,26 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public TopicExchange catalogEventsExchange() {
+        return new TopicExchange("catalog.events.exchange");
+    }
+
+    @Bean
+    public org.springframework.amqp.core.TopicExchange adminExchange() {
+        return new org.springframework.amqp.core.TopicExchange("admin.events.exchange");
+    }
+
+    @Bean
+    public org.springframework.amqp.core.Queue catalogModerationQueue() {
+        return new org.springframework.amqp.core.Queue("catalog.moderation.events.queue", true);
+    }
+
+    @Bean
+    public org.springframework.amqp.core.Binding moderationResolvedBinding(org.springframework.amqp.core.Queue catalogModerationQueue, org.springframework.amqp.core.TopicExchange adminExchange) {
+        return org.springframework.amqp.core.BindingBuilder.bind(catalogModerationQueue).to(adminExchange).with("moderation.resolved");
+    }
+
+    @Bean
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
     }

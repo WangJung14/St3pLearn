@@ -11,6 +11,8 @@ import com.tommy.common.exception.ErrorCode;
 import com.tommy.catalog.infrastructure.persistence.repository.ReportTicketRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import com.tommy.common.event.ReportSubmittedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,7 @@ import java.util.UUID;
 public class ReportService implements IReportService {
 
     private final ReportTicketRepository reportTicketRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     @Transactional
@@ -40,6 +43,17 @@ public class ReportService implements IReportService {
 
         ticket = reportTicketRepository.save(ticket);
         log.info("Created report ticket {} by user {}", ticket.getId(), reporterId);
+
+        ReportSubmittedEvent event = ReportSubmittedEvent.builder()
+                .reportId(ticket.getId())
+                .reporterId(ticket.getReporterId())
+                .targetType(ticket.getTargetType().name())
+                .targetId(ticket.getTargetId())
+                .reason(ticket.getReason())
+                .description(ticket.getDescription())
+                .createdAt(ticket.getCreatedAt())
+                .build();
+        rabbitTemplate.convertAndSend("catalog.events.exchange", "report.submitted", event);
 
         return mapToResponse(ticket);
     }

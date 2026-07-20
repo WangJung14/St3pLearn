@@ -30,6 +30,7 @@ public class AdminService implements IAdminService {
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
 
     @Override
     @Transactional
@@ -44,6 +45,17 @@ public class AdminService implements IAdminService {
         accountRepository.save(account);
 
         log.info("Assigned role {} to user {}", request.getRoleName(), targetUserId);
+
+        com.tommy.common.event.SystemAuditEvent event = com.tommy.common.event.SystemAuditEvent.builder()
+                .actorId(UUID.randomUUID()) // In a real scenario, get from SecurityContext
+                .action("ASSIGN_ROLE")
+                .targetType("USER")
+                .targetId(targetUserId.toString())
+                .newValue(request.getRoleName())
+                .description("Assigned role " + request.getRoleName() + " to user")
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        rabbitTemplate.convertAndSend("admin.events.exchange", "system.audit", event);
     }
 
     @Override
@@ -59,6 +71,17 @@ public class AdminService implements IAdminService {
         accountRepository.save(account);
 
         log.info("Removed role {} from user {}", roleName, targetUserId);
+
+        com.tommy.common.event.SystemAuditEvent event = com.tommy.common.event.SystemAuditEvent.builder()
+                .actorId(UUID.randomUUID()) // In a real scenario, get from SecurityContext
+                .action("REMOVE_ROLE")
+                .targetType("USER")
+                .targetId(targetUserId.toString())
+                .oldValue(roleName)
+                .description("Removed role " + roleName + " from user")
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        rabbitTemplate.convertAndSend("admin.events.exchange", "system.audit", event);
     }
 
     @Override
@@ -76,6 +99,17 @@ public class AdminService implements IAdminService {
         }
 
         log.info("Changed account status to {} for user {}", status, targetUserId);
+
+        com.tommy.common.event.SystemAuditEvent event = com.tommy.common.event.SystemAuditEvent.builder()
+                .actorId(UUID.randomUUID()) // In a real scenario, get from SecurityContext
+                .action("CHANGE_ACCOUNT_STATUS")
+                .targetType("USER")
+                .targetId(targetUserId.toString())
+                .newValue(status.name())
+                .description("Changed account status to " + status.name())
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        rabbitTemplate.convertAndSend("admin.events.exchange", "system.audit", event);
     }
 
     @Override

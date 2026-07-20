@@ -35,4 +35,16 @@ public class RabbitMQConfig {
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
     }
+
+    public static final String COURSE_COMPLETED_EXCHANGE = "course.completed.exchange";
+
+    @Bean
+    public org.springframework.amqp.core.FanoutExchange courseCompletedExchange() {
+        return new org.springframework.amqp.core.FanoutExchange(COURSE_COMPLETED_EXCHANGE);
+    }
+
+    @Bean
+    public Queue paymentOrderCompletedQueue() {
+        return new Queue("payment.order.completed.queue", true);
+    }
 }

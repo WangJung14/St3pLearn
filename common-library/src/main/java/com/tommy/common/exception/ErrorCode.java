@@ -64,12 +64,42 @@ public enum ErrorCode {
     ENROLLMENT_EXISTS(400,"This enrollment already exists.", HttpStatus.BAD_REQUEST),
     ENROLLMENT_NOT_FOUND(404 ,"This enrollment does not exist.", HttpStatus.NOT_FOUND),
 
-    // Report
+    // Report & Moderation
     REPORT_NOT_FOUND(404, "Report not found.", HttpStatus.NOT_FOUND),
+    MODERATION_CASE_NOT_FOUND(404, "Moderation case not found.", HttpStatus.NOT_FOUND),
     
     // Question Bank
     QUESTION_BANK_NOT_FOUND(404, "Question bank not found.", HttpStatus.NOT_FOUND),
     QUESTION_BANK_ACCESS_DENIED(403, "You do not have permission to modify this question bank.", HttpStatus.FORBIDDEN),
+    // Question
+    QUESTION_NOT_FOUND(404, "Question not found.", HttpStatus.NOT_FOUND),
+    QUESTION_ACCESS_DENIED(403, "You do not have permission to modify this question.", HttpStatus.FORBIDDEN),
+    INVALID_QUESTION_DATA(400, "Invalid question data provided.", HttpStatus.BAD_REQUEST),
+    
+    // Exam
+    EXAM_NOT_FOUND(404, "Exam not found.", HttpStatus.NOT_FOUND),
+    EXAM_ACCESS_DENIED(403, "You do not have permission to access this exam.", HttpStatus.FORBIDDEN),
+    EXAM_TIMEOUT(400, "Bài thi đã quá thời gian nộp", HttpStatus.BAD_REQUEST),
+    EXAM_INVALID_STATE(400, "Trạng thái bài thi không hợp lệ cho thao tác này", HttpStatus.BAD_REQUEST),
+
+    // Certificate Errors
+    CERTIFICATE_NOT_FOUND(404, "Không tìm thấy chứng chỉ hoặc chứng chỉ không tồn tại", HttpStatus.NOT_FOUND),
+    REQUIREMENTS_NOT_MET(400, "Chưa đủ điều kiện cấp chứng chỉ (cần hoàn thành 80% tiến độ và vượt qua tất cả bài thi)", HttpStatus.BAD_REQUEST),
+    CERTIFICATE_REVOKED(400, "Chứng chỉ đã bị thu hồi", HttpStatus.BAD_REQUEST),
+    
+    // Flashcard Errors
+    FLASHCARD_NOT_FOUND(404, "Flashcard not found.", HttpStatus.NOT_FOUND),
+    
+    // Payment/Coupon Errors
+    COUPON_NOT_FOUND(404, "Mã giảm giá không tồn tại hoặc đã bị vô hiệu hóa", HttpStatus.NOT_FOUND),
+    COUPON_EXPIRED(400, "Mã giảm giá đã hết hạn", HttpStatus.BAD_REQUEST),
+    COUPON_NOT_STARTED(400, "Mã giảm giá chưa đến thời gian sử dụng", HttpStatus.BAD_REQUEST),
+    COUPON_LIMIT_REACHED(400, "Mã giảm giá đã hết lượt sử dụng", HttpStatus.BAD_REQUEST),
+    COUPON_INVALID_COURSE(400, "Mã giảm giá không áp dụng cho khóa học này", HttpStatus.BAD_REQUEST),
+    COUPON_ALREADY_USED(400, "Bạn đã sử dụng mã giảm giá này rồi", HttpStatus.BAD_REQUEST),
+    EXAM_MAX_ATTEMPTS_REACHED(400, "You have reached the maximum number of attempts for this exam.", HttpStatus.BAD_REQUEST),
+    STUDENT_NOT_ENROLLED(403, "You must be enrolled in the course to take this exam.", HttpStatus.FORBIDDEN),
+    EXAM_NOT_PUBLISHED(400, "This exam is not published yet.", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

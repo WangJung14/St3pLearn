@@ -1,0 +1,27 @@
+2\. Student - Download Certificate (Xuất file PDF)
+--------------------------------------------------
+
+**Mô tả:** Học viên bấm nút tải về. Backend sẽ lấy thông tin Tên, Khóa học, Ngày cấp, ghép vào một Template có sẵn (như khung viền hoa văn, chữ ký xịn sò) và xuất ra file PDF ném về cho Frontend.
+
+**Ý tưởng thiết kế (Xử lý PDF trong Spring Boot):**
+
+Em không nên vẽ PDF bằng code Java chay (rất khổ). Chuẩn công nghiệp hiện tại là dùng **Thymeleaf + OpenHTMLToPDF** (hoặc Flying Saucer). Em chỉ cần viết 1 cái template HTML/CSS thật đẹp, nhét các biến ${studentName}, ${courseName} vào. Backend sẽ render HTML đó rồi convert sang byte\[\] PDF.
+
+**Logic nghiệp vụ (Business Logic):**
+
+*   **Input:** certificateId (hoặc courseId), studentId (từ Token để bảo mật).
+    
+*   **Step 1:** Tìm chứng chỉ dưới DB. Đảm bảo chứng chỉ này thuộc về studentId đang gọi API và is\_revoked == false.
+    
+*   **Step 2:** Join với User/Student để lấy Tên thật, Join với CourseReplica lấy Tên khóa học.
+    
+*   **Step 3:** Truyền dữ liệu vào Context của Thymeleaf, render ra chuỗi HTML.
+    
+*   **Step 4:** Dùng thư viện convert HTML thành mảng byte byte\[\].
+    
+*   **Step 5:** Set Header của HTTP Response là application/pdf và Content-Disposition: attachment; filename="certificate.pdf" để trình duyệt tự động tải file xuống thay vì trả JSON.
+    
+
+**Đặc tả API:**
+
+**MethodEndpointResponseGET**/api/learning/certificates/{certificateId}/downloadTrả về Binary File (PDF)
