@@ -6,6 +6,8 @@ import com.tommy.learning.application.dto.request.UpdateExamRequest;
 import com.tommy.learning.application.dto.request.UpdateExamStatusRequest;
 import com.tommy.learning.application.dto.response.ExamResponse;
 
+import com.tommy.learning.application.dto.response.StartExamResponse;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -17,4 +19,5 @@ public interface IExamService {
     void deleteExam(UUID instructorId, UUID examId);
     List<ExamResponse> getExamsByInstructor(UUID instructorId);
     ExamResponse getExamById(UUID instructorId, UUID examId);
+    StartExamResponse startExam(UUID studentId, UUID examId);
 }

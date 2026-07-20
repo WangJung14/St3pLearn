@@ -7,6 +7,7 @@ import com.tommy.learning.application.dto.request.UpdateExamQuestionsRequest;
 import com.tommy.learning.application.dto.request.UpdateExamRequest;
 import com.tommy.learning.application.dto.request.UpdateExamStatusRequest;
 import com.tommy.learning.application.dto.response.ExamResponse;
+import com.tommy.learning.application.dto.response.StartExamResponse;
 import com.tommy.learning.application.service.IExamService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -102,5 +103,16 @@ public class ExamController {
         log.info("Fetching exam {} for instructor {}", examId, instructorId);
         ExamResponse response = examService.getExamById(instructorId, examId);
         return ResponseEntity.ok(ApiResponse.success(200, "Fetched exam successfully", response));
+    }
+
+    @PostMapping("/exams/{examId}/attempts")
+    @RequireRole({"STUDENT"})
+    public ResponseEntity<ApiResponse<StartExamResponse>> startExam(
+            @RequestHeader("X-User-Id") UUID studentId,
+            @PathVariable UUID examId) {
+
+        log.info("Student {} starting exam {}", studentId, examId);
+        StartExamResponse response = examService.startExam(studentId, examId);
+        return ResponseEntity.ok(ApiResponse.success(201, "Exam started successfully", response));
     }
 }

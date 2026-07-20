@@ -7,20 +7,24 @@ import com.tommy.learning.application.dto.request.UpdateExamRequest;
 import com.tommy.learning.application.dto.request.UpdateExamStatusRequest;
 import com.tommy.learning.application.dto.response.ExamResponse;
 import com.tommy.learning.application.dto.response.QuestionResponse;
+import com.tommy.learning.application.dto.response.StartExamResponse;
+import com.tommy.learning.application.dto.response.StudentQuestionResponse;
 import com.tommy.learning.application.service.IExamService;
 import com.tommy.learning.domain.entity.Exam;
+import com.tommy.learning.domain.entity.ExamAttempt;
 import com.tommy.learning.domain.entity.ExamQuestion;
 import com.tommy.learning.domain.entity.Question;
+import com.tommy.learning.domain.entity.json.Option;
+import com.tommy.learning.domain.entity.json.QuestionMetadata;
+import com.tommy.learning.domain.enums.ExamAttemptStatus;
 import com.tommy.learning.domain.enums.ExamStatus;
-import com.tommy.learning.infrastructure.persistence.repository.ExamQuestionRepository;
-import com.tommy.learning.infrastructure.persistence.repository.ExamRepository;
-import com.tommy.learning.infrastructure.persistence.repository.QuestionBankRepository;
-import com.tommy.learning.infrastructure.persistence.repository.QuestionRepository;
+import com.tommy.learning.infrastructure.persistence.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -35,6 +39,8 @@ public class ExamService implements IExamService {
     private final ExamQuestionRepository examQuestionRepository;
     private final QuestionRepository questionRepository;
     private final QuestionBankRepository questionBankRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final ExamAttemptRepository examAttemptRepository;
 
     @Override
     @Transactional
@@ -131,6 +137,78 @@ public class ExamService implements IExamService {
         return mapToResponse(exam);
     }
 
+    @Override
+    @Transactional
+    public StartExamResponse startExam(UUID studentId, UUID examId) {
+        log.info("Student {} starting exam {}", studentId, examId);
+
+        Exam exam = examRepository.findByIdAndIsDeletedFalse(examId)
+                .orElseThrow(() -> new AppException(com.tommy.common.exception.ErrorCode.EXAM_NOT_FOUND));
+
+        if (exam.getStatus() != ExamStatus.PUBLISHED) {
+            throw new AppException(com.tommy.common.exception.ErrorCode.EXAM_NOT_PUBLISHED);
+        }
+
+        if (!enrollmentRepository.existsByStudentIdAndCourseId(studentId, exam.getCourseId())) {
+            throw new AppException(com.tommy.common.exception.ErrorCode.STUDENT_NOT_ENROLLED);
+        }
+
+        long attempts = examAttemptRepository.countByStudentIdAndExamId(studentId, examId);
+        if (attempts >= exam.getMaxAttempts()) {
+            throw new AppException(com.tommy.common.exception.ErrorCode.EXAM_MAX_ATTEMPTS_REACHED);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime expiresAt = now.plusMinutes(exam.getDurationMinutes());
+
+        ExamAttempt attempt = ExamAttempt.builder()
+                .examId(examId)
+                .studentId(studentId)
+                .startedAt(now)
+                .expiresAt(expiresAt)
+                .status(ExamAttemptStatus.STARTED)
+                .build();
+        examAttemptRepository.save(attempt);
+
+        List<ExamQuestion> examQuestions = examQuestionRepository.findByExamIdOrderByDisplayOrderAsc(examId);
+        List<StudentQuestionResponse> questions = new ArrayList<>();
+
+        for (ExamQuestion eq : examQuestions) {
+            Question q = eq.getQuestion();
+            QuestionMetadata metadata = q.getMetadata();
+            
+            // Obfuscate correct answers
+            if (metadata != null && metadata.getOptions() != null) {
+                QuestionMetadata safeMetadata = new QuestionMetadata();
+                List<Option> safeOptions = new ArrayList<>();
+                for (Option opt : metadata.getOptions()) {
+                    Option safeOpt = new Option();
+                    safeOpt.setId(opt.getId());
+                    safeOpt.setText(opt.getText());
+                    safeOpt.setCorrect(false); // CHE ĐÁP ÁN!
+                    safeOptions.add(safeOpt);
+                }
+                safeMetadata.setOptions(safeOptions);
+                metadata = safeMetadata;
+            }
+
+            questions.add(StudentQuestionResponse.builder()
+                    .id(q.getId())
+                    .type(q.getType())
+                    .content(q.getContent())
+                    .metadata(metadata)
+                    .difficulty(q.getDifficulty())
+                    .points(q.getPoints())
+                    .build());
+        }
+
+        return StartExamResponse.builder()
+                .attemptId(attempt.getId())
+                .endTime(expiresAt)
+                .questions(questions)
+                .build();
+    }
+
     private Exam getExamAndVerifyOwnership(UUID examId, UUID instructorId) {
         Exam exam = examRepository.findByIdAndIsDeletedFalse(examId)
                 .orElseThrow(() -> new AppException(com.tommy.common.exception.ErrorCode.EXAM_NOT_FOUND));
@@ -165,9 +243,7 @@ public class ExamService implements IExamService {
     }
 
     private boolean checkIfExamHasAttempts(UUID examId) {
-        // MOCK for Phase 7: Since we don't have exam_attempts yet, we'll return false.
-        // In reality, this would query exam_attempts table.
-        return false;
+        return examAttemptRepository.existsByExamId(examId);
     }
 
     private ExamResponse mapToResponse(Exam exam) {

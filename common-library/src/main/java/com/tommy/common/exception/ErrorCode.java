@@ -79,6 +79,9 @@ public enum ErrorCode {
     EXAM_NOT_FOUND(404, "Exam not found.", HttpStatus.NOT_FOUND),
     EXAM_ACCESS_DENIED(403, "You do not have permission to access this exam.", HttpStatus.FORBIDDEN),
     EXAM_INVALID_STATE(400, "Invalid state operation for exam.", HttpStatus.BAD_REQUEST),
+    EXAM_NOT_PUBLISHED(400, "This exam is not published yet.", HttpStatus.BAD_REQUEST),
+    EXAM_MAX_ATTEMPTS_REACHED(400, "You have reached the maximum number of attempts for this exam.", HttpStatus.BAD_REQUEST),
+    STUDENT_NOT_ENROLLED(403, "You must be enrolled in the course to take this exam.", HttpStatus.FORBIDDEN),
     ;
 
     private final int code;
