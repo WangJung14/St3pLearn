@@ -173,4 +173,12 @@ public class ExamController {
         ExamResultResponse response = examService.getExamResult(studentId, attemptId);
         return ResponseEntity.ok(ApiResponse.success(200, "Fetched exam result successfully", response));
     }
+
+    @GetMapping("/courses/{courseId}/exams")
+    public ResponseEntity<ApiResponse<List<ExamResponse>>> getExamsByCourse(
+            @PathVariable UUID courseId) {
+        log.info("Fetching exams for course {}", courseId);
+        List<ExamResponse> response = examService.getExamsByCourse(courseId);
+        return ResponseEntity.ok(ApiResponse.success(200, "Fetched exams successfully", response));
+    }
 }

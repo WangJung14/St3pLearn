@@ -151,6 +151,16 @@ public class ExamService implements IExamService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<ExamResponse> getExamsByCourse(UUID courseId) {
+        return examRepository.findByCourseIdAndIsDeletedFalse(courseId)
+                .stream()
+                .filter(exam -> com.tommy.learning.domain.enums.ExamStatus.PUBLISHED.equals(exam.getStatus()))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public ExamResponse getExamById(UUID instructorId, UUID examId) {
         Exam exam = getExamAndVerifyOwnership(examId, instructorId);
         return mapToResponse(exam);

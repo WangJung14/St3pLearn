@@ -44,6 +44,7 @@ public class CourseService implements ICourseService {
     private final CourseChapterRepository courseChapterRepository;
     private final RabbitTemplate rabbitTemplate;
     private final IdentityClient identityClient;
+    private final StudentEnrolledCourseRepository enrolledCourseRepository;
 
     @Override
     @Transactional
@@ -541,7 +542,7 @@ public class CourseService implements ICourseService {
 
     @Override
     @Transactional(readOnly = true)
-    public CourseDetailPublicResponse getPublicCourseDetail(String slug, String userRole, UUID userId) {
+    public CourseDetailPublicResponse getPublicCourseDetail(String slug, String userRole, UUID userId, String fromPlayer) {
         // 1. Find course by slug
         Course course = courseRepository.findBySlug(slug)
                 .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
@@ -559,6 +560,9 @@ public class CourseService implements ICourseService {
         if (!canView) {
             throw new AppException(ErrorCode.COURSE_NOT_FOUND);
         }
+
+        boolean isEnrolled = (userId != null) && enrolledCourseRepository.existsByStudentIdAndCourseId(userId, course.getId());
+        boolean isFromPlayer = "true".equals(fromPlayer) && (userId != null);
 
         // 3. Get all chapter of course
         List<CourseChapter> chapters = courseChapterRepository.findByCourseIdOrderByDisplayOrderAsc(course.getId());
@@ -581,11 +585,15 @@ public class CourseService implements ICourseService {
 
                 boolean shouldShowContent = lesson.getIsPreview() 
                         || "ADMIN".equals(userRole) 
-                        || ("TEACHER".equals(userRole) && course.getInstructorId().equals(userId));
+                        || ("TEACHER".equals(userRole) && course.getInstructorId().equals(userId))
+                        || isEnrolled
+                        || isFromPlayer;
 
                 if (shouldShowContent) {
                     if (lesson.getContent() != null) {
                         dto.setVideoUrl(lesson.getContent().getStorageUrl());
+                        dto.setContentType(lesson.getContent().getContentType());
+                        dto.setTextContent(lesson.getContent().getTextContent());
                     }
                 } else {
                     dto.setVideoUrl(null);

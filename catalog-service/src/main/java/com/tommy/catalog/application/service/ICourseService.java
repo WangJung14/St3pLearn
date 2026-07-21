@@ -43,7 +43,7 @@ public interface ICourseService {
     void publishCourse(UUID courseId, UUID instructorId);
 
     // Get public Course Detail
-    CourseDetailPublicResponse getPublicCourseDetail(String slug, String userRole, UUID userId);
+    CourseDetailPublicResponse getPublicCourseDetail(String slug, String userRole, UUID userId, String fromPlayer);
 
     // Get course summary
     List<CourseSummaryResponse> getCourseSummaries(List<UUID> courseIds);

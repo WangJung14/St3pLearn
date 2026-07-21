@@ -26,6 +26,7 @@ public interface IExamService {
     ExamResponse updateExamStatus(UUID instructorId, UUID examId, UpdateExamStatusRequest request);
     void deleteExam(UUID instructorId, UUID examId);
     List<ExamResponse> getExamsByInstructor(UUID instructorId);
+    List<ExamResponse> getExamsByCourse(UUID courseId);
     ExamResponse getExamById(UUID instructorId, UUID examId);
     StartExamResponse startExam(UUID studentId, UUID examId);
     void submitExam(UUID studentId, UUID attemptId, SubmitExamRequest request);
