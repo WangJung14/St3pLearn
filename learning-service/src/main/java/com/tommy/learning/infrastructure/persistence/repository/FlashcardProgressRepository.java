@@ -15,6 +15,7 @@ import java.util.UUID;
 @Repository
 public interface FlashcardProgressRepository extends JpaRepository<FlashcardProgress, UUID> {
     Optional<FlashcardProgress> findByStudentIdAndFlashcardId(UUID studentId, UUID flashcardId);
+    Page<FlashcardProgress> findByStudentId(UUID studentId, Pageable pageable);
 
     @Query("SELECT fp FROM FlashcardProgress fp WHERE fp.studentId = :studentId AND fp.nextReviewDate <= :today")
     Page<FlashcardProgress> findDueCards(@Param("studentId") UUID studentId, @Param("today") LocalDateTime today, Pageable pageable);

@@ -33,4 +33,6 @@ public interface IExamService {
     Page<ExamAttemptResponse> getExamSubmissions(UUID instructorId, UUID examId, ExamAttemptStatus status, Pageable pageable);
     void gradeSubmission(UUID instructorId, UUID attemptId, GradeSubmissionRequest request);
     ExamResultResponse getExamResult(UUID studentId, UUID attemptId);
+    ExamResultResponse getSubmissionDetails(UUID instructorId, UUID attemptId);
+    List<ExamResponse> getExamsForStudent(UUID studentId);
 }

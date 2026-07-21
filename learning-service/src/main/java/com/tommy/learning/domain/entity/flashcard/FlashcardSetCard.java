@@ -14,6 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "flashcardSet"}, ignoreUnknown = true)
 public class FlashcardSetCard {
     
     @Id
@@ -22,6 +23,7 @@ public class FlashcardSetCard {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "set_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private FlashcardSet flashcardSet;
 
     @ManyToOne(fetch = FetchType.LAZY)

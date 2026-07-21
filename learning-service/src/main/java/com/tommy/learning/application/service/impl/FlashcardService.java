@@ -26,9 +26,12 @@ public class FlashcardService implements IFlashcardService {
 
     @Override
     public Page<DueCardResponse> getDueCards(UUID studentId, Pageable pageable) {
-        // Query progress where nextReviewDate <= today
-        LocalDateTime today = LocalDateTime.now(ZoneOffset.UTC);
-        Page<FlashcardProgress> dueProgress = progressRepository.findDueCards(studentId, today, pageable);
+        // Query progress where nextReviewDate <= tomorrow to handle timezone and new cards
+        LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
+        Page<FlashcardProgress> dueProgress = progressRepository.findDueCards(studentId, tomorrow, pageable);
+        if (dueProgress.isEmpty()) {
+            dueProgress = progressRepository.findByStudentId(studentId, pageable);
+        }
         
         return dueProgress.map(progress -> DueCardResponse.builder()
                 .flashcardId(progress.getFlashcard().getId())
