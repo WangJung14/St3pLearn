@@ -15,13 +15,13 @@ spring:
         - id: identity-service-route
           uri: lb://identity-service # lb = Load Balancer (Tự động cân bằng tải)
           predicates:
-            - Path=/api/auth/**, /api/users/** # Nhận diện Request qua đường dẫn này
+            - Path=/api/auth/**, /api/users/**, /api/admin/users/**
 
         # THÊM MỚI: Luật định tuyến cho Catalog Service
         - id: catalog-service-route
           uri: lb://catalog-service
           predicates:
-            - Path=/api/catalog/**, /api/courses/**, /api/categories/**, /api/wishlists/**
+            - Path=/api/catalog/**, /api/courses/**, /api/categories/**, /api/tags/**, /api/wishlists/**
 
         - id: learning-service-route
           uri: lb://learning-service

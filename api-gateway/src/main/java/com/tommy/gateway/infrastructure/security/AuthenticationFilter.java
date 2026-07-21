@@ -26,7 +26,6 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    // Danh sách các API không cần check Token (Public)
     private final List<String> publicEndpoints = List.of(
             "/api/auth/login",
             "/api/auth/register",
@@ -36,7 +35,9 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             "/api/auth/verify-email",
             "/api/catalog/p/",
             "/api/courses/p/",
-            "/api/courses/bulk-summaries" // API xem profile công khai
+            "/api/courses/bulk-summaries",
+            "/api/categories",
+            "/api/tags"
     );
 
     @Override
