@@ -238,9 +238,12 @@ public class CourseController {
     // Get public course detail
     @GetMapping("/p/{slug}")
     public ResponseEntity<ApiResponse<CourseDetailPublicResponse>> getPublicCourseDetail(
-            @PathVariable String slug) {
+            @PathVariable String slug,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Id", required = false) UUID userId,
+            @RequestHeader(value = "X-From-Player", required = false) String fromPlayer) {
 
-        CourseDetailPublicResponse courseDetail = courseService.getPublicCourseDetail(slug);
+        CourseDetailPublicResponse courseDetail = courseService.getPublicCourseDetail(slug, userRole, userId, fromPlayer);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

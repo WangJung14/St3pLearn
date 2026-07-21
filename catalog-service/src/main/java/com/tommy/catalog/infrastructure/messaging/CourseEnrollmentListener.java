@@ -16,7 +16,7 @@ public class CourseEnrollmentListener {
     private final StudentEnrolledCourseRepository enrolledCourseRepository;
 
     // TODO: Bỏ comment khi tích hợp Spring AMQP (RabbitMQ)
-    // @RabbitListener(queues = "course.enrollment.catalog.queue")
+    // @org.springframework.amqp.rabbit.annotation.RabbitListener(queues = "course.enrollment.catalog.queue")
     public void handleCourseEnrolledEvent(CourseEnrolledEvent event) {
         log.info("Received enrollment event for Student {} and Course {}", event.studentId(), event.courseId());
 

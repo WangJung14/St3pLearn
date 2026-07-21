@@ -163,6 +163,17 @@ public class ExamController {
         return ResponseEntity.ok(ApiResponse.success(200, "Exam graded successfully", null));
     }
 
+    @GetMapping("/exams/submissions/{attemptId}")
+    @RequireRole({"INSTRUCTOR", "TEACHER"})
+    public ResponseEntity<ApiResponse<ExamResultResponse>> getSubmissionDetails(
+            @RequestHeader("X-User-Id") UUID instructorId,
+            @PathVariable UUID attemptId) {
+
+        log.info("Instructor {} fetching submission details for attempt {}", instructorId, attemptId);
+        ExamResultResponse response = examService.getSubmissionDetails(instructorId, attemptId);
+        return ResponseEntity.ok(ApiResponse.success(200, "Fetched student submission details successfully", response));
+    }
+
     @GetMapping("/exams/attempts/{attemptId}/result")
     @RequireRole({"STUDENT"})
     public ResponseEntity<ApiResponse<ExamResultResponse>> getExamResult(
@@ -172,5 +183,22 @@ public class ExamController {
         log.info("Student {} fetching exam result for attempt {}", studentId, attemptId);
         ExamResultResponse response = examService.getExamResult(studentId, attemptId);
         return ResponseEntity.ok(ApiResponse.success(200, "Fetched exam result successfully", response));
+    }
+
+    @GetMapping("/courses/{courseId}/exams")
+    public ResponseEntity<ApiResponse<List<ExamResponse>>> getExamsByCourse(
+            @PathVariable UUID courseId) {
+        log.info("Fetching exams for course {}", courseId);
+        List<ExamResponse> response = examService.getExamsByCourse(courseId);
+        return ResponseEntity.ok(ApiResponse.success(200, "Fetched exams successfully", response));
+    }
+
+    @GetMapping("/student/exams")
+    @RequireRole({"STUDENT"})
+    public ResponseEntity<ApiResponse<List<ExamResponse>>> getStudentExams(
+            @RequestHeader("X-User-Id") UUID studentId) {
+        log.info("Student {} fetching enrolled course exams", studentId);
+        List<ExamResponse> response = examService.getExamsForStudent(studentId);
+        return ResponseEntity.ok(ApiResponse.success(200, "Fetched student exams successfully", response));
     }
 }

@@ -52,6 +52,7 @@ public class LessonContentService implements ILessonContentService {
         content.setFileSize(request.getFileSize());
         content.setChecksum(request.getChecksum());
         content.setMetadata(request.getMetadata());
+        content.setTextContent(request.getTextContent());
 
         return contentRepository.save(content);
     }

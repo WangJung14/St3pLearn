@@ -151,6 +151,38 @@ public class ExamService implements IExamService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<ExamResponse> getExamsByCourse(UUID courseId) {
+        return examRepository.findByCourseIdAndIsDeletedFalse(courseId)
+                .stream()
+                .filter(exam -> com.tommy.learning.domain.enums.ExamStatus.PUBLISHED.equals(exam.getStatus()))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ExamResponse> getExamsForStudent(UUID studentId) {
+        log.info("Fetching exams for student {}", studentId);
+        List<com.tommy.learning.domain.entity.Enrollment> enrollments = enrollmentRepository.findByStudentId(studentId);
+        List<UUID> courseIds = enrollments.stream()
+                .map(com.tommy.learning.domain.entity.Enrollment::getCourseId)
+                .collect(Collectors.toList());
+
+        List<Exam> exams;
+        if (!courseIds.isEmpty()) {
+            exams = examRepository.findByCourseIdInAndIsDeletedFalse(courseIds);
+        } else {
+            exams = examRepository.findByIsDeletedFalse();
+        }
+
+        return exams.stream()
+                .filter(exam -> ExamStatus.PUBLISHED.equals(exam.getStatus()))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public ExamResponse getExamById(UUID instructorId, UUID examId) {
         Exam exam = getExamAndVerifyOwnership(examId, instructorId);
         return mapToResponse(exam);
@@ -455,6 +487,45 @@ public class ExamService implements IExamService {
                 .score(attempt.getScore())
                 .passed(attempt.getPassed())
                 .message("Kết quả bài thi chi tiết")
+                .questions(questionResults)
+                .build();
+    }
+
+    @Override
+    public ExamResultResponse getSubmissionDetails(UUID instructorId, UUID attemptId) {
+        log.info("Instructor {} fetching submission details for attempt {}", instructorId, attemptId);
+
+        ExamAttempt attempt = examAttemptRepository.findById(attemptId)
+                .orElseThrow(() -> new AppException(com.tommy.common.exception.ErrorCode.EXAM_NOT_FOUND));
+
+        // Verify instructor owns this exam
+        getExamAndVerifyOwnership(attempt.getExamId(), instructorId);
+
+        List<ExamSubmission> submissions = examSubmissionRepository.findByAttemptId(attemptId);
+        List<StudentExamQuestionResultResponse> questionResults = new ArrayList<>();
+
+        for (ExamSubmission sub : submissions) {
+            Question q = questionRepository.findByIdAndIsDeletedFalse(sub.getQuestionId()).orElse(null);
+            if (q != null) {
+                questionResults.add(StudentExamQuestionResultResponse.builder()
+                        .questionId(q.getId())
+                        .type(q.getType())
+                        .content(q.getContent())
+                        .metadata(q.getMetadata())
+                        .points(q.getPoints())
+                        .studentAnswer(sub.getAnswer())
+                        .score(sub.getScore())
+                        .feedback(sub.getFeedback())
+                        .build());
+            }
+        }
+
+        return ExamResultResponse.builder()
+                .attemptId(attemptId)
+                .status(attempt.getStatus())
+                .score(attempt.getScore())
+                .passed(attempt.getPassed())
+                .message("Kết quả bài nộp chi tiết của học viên")
                 .questions(questionResults)
                 .build();
     }

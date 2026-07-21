@@ -12,6 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "vocabulary"}, ignoreUnknown = true)
 public class VocabularyExample {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

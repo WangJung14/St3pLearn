@@ -20,4 +20,6 @@ public class LessonContentRequest {
     private String checksum;
 
     private Map<String, Object> metadata; // Save json
+
+    private String textContent;
 }

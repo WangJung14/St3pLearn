@@ -26,10 +26,13 @@ public interface IExamService {
     ExamResponse updateExamStatus(UUID instructorId, UUID examId, UpdateExamStatusRequest request);
     void deleteExam(UUID instructorId, UUID examId);
     List<ExamResponse> getExamsByInstructor(UUID instructorId);
+    List<ExamResponse> getExamsByCourse(UUID courseId);
     ExamResponse getExamById(UUID instructorId, UUID examId);
     StartExamResponse startExam(UUID studentId, UUID examId);
     void submitExam(UUID studentId, UUID attemptId, SubmitExamRequest request);
     Page<ExamAttemptResponse> getExamSubmissions(UUID instructorId, UUID examId, ExamAttemptStatus status, Pageable pageable);
     void gradeSubmission(UUID instructorId, UUID attemptId, GradeSubmissionRequest request);
     ExamResultResponse getExamResult(UUID studentId, UUID attemptId);
+    ExamResultResponse getSubmissionDetails(UUID instructorId, UUID attemptId);
+    List<ExamResponse> getExamsForStudent(UUID studentId);
 }

@@ -17,4 +17,6 @@ public class LessonPublicDto {
     private boolean isPreview;
 
     private String videoUrl;
+    private String contentType;
+    private String textContent;
 }
