@@ -21,7 +21,7 @@ spring:
         - id: catalog-service-route
           uri: lb://catalog-service
           predicates:
-            - Path=/api/catalog/**, /api/courses/**, /api/categories/**, /api/wishlists/**
+            - Path=/api/catalog/**, /api/courses/**, /api/categories/**, /api/tags/**, /api/wishlists/**
 
         - id: learning-service-route
           uri: lb://learning-service
