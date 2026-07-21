@@ -42,6 +42,10 @@ public class RefundService {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION); // INVALID_ORDER_STATUS
         }
 
+        if (request.getRefundAmount().compareTo(order.getFinalAmount()) > 0) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION); // REFUND_AMOUNT_EXCEEDS_PAID_AMOUNT
+        }
+
         RefundRequest refundRequest = RefundRequest.builder()
                 .paymentOrderId(order.getId())
                 .studentId(studentId)

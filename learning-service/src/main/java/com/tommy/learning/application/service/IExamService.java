@@ -10,6 +10,7 @@ import com.tommy.learning.application.dto.request.UpdateExamStatusRequest;
 import com.tommy.learning.application.dto.response.ExamAttemptResponse;
 import com.tommy.learning.application.dto.response.ExamResponse;
 import com.tommy.learning.application.dto.response.ExamResultResponse;
+import com.tommy.learning.application.dto.response.StudentExamSummaryResponse;
 import com.tommy.learning.domain.enums.ExamAttemptStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,7 @@ public interface IExamService {
     void deleteExam(UUID instructorId, UUID examId);
     List<ExamResponse> getExamsByInstructor(UUID instructorId);
     ExamResponse getExamById(UUID instructorId, UUID examId);
+    List<StudentExamSummaryResponse> getAvailableExamsForStudent(UUID studentId);
     StartExamResponse startExam(UUID studentId, UUID examId);
     void submitExam(UUID studentId, UUID attemptId, SubmitExamRequest request);
     Page<ExamAttemptResponse> getExamSubmissions(UUID instructorId, UUID examId, ExamAttemptStatus status, Pageable pageable);

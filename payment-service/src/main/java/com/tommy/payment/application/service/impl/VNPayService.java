@@ -1,6 +1,7 @@
 package com.tommy.payment.application.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,12 +15,17 @@ import javax.crypto.spec.SecretKeySpec;
 @Service
 @Slf4j
 public class VNPayService {
-    // Hardcoded for now as requested
-    private static final String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    private static final String vnp_ReturnUrl = "http://localhost:8085/api/payment/vnpay/callback";
-    private static final String vnp_TmnCode = "MOCK_CODE";
-    private static final String secretKey = "MOCK_SECRET";
-    private static final String vnp_ApiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
+    @Value("${payment.vnpay.pay-url}")
+    private String payUrl;
+
+    @Value("${payment.vnpay.return-url}")
+    private String returnUrl;
+
+    @Value("${payment.vnpay.tmn-code}")
+    private String tmnCode;
+
+    @Value("${payment.vnpay.hash-secret}")
+    private String secretKey;
 
     public String createPaymentUrl(String orderInfo, BigDecimal amount, String orderNumber, String ipAddress) {
         String vnp_Version = "2.1.0";
@@ -30,14 +36,18 @@ public class VNPayService {
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", vnp_Version);
         vnp_Params.put("vnp_Command", vnp_Command);
-        vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
+        if (tmnCode == null || tmnCode.isBlank() || secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException("VNPay credentials are not configured");
+        }
+
+        vnp_Params.put("vnp_TmnCode", tmnCode);
         vnp_Params.put("vnp_Amount", String.valueOf(amountVND));
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_TxnRef", orderNumber);
         vnp_Params.put("vnp_OrderInfo", orderInfo);
         vnp_Params.put("vnp_OrderType", orderType);
         vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", vnp_ReturnUrl);
+        vnp_Params.put("vnp_ReturnUrl", returnUrl);
         vnp_Params.put("vnp_IpAddr", ipAddress != null ? ipAddress : "127.0.0.1");
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
@@ -69,7 +79,7 @@ public class VNPayService {
             String queryUrl = query.toString();
             String vnp_SecureHash = hmacSHA512(secretKey, hashData.toString());
             queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
-            return vnp_PayUrl + "?" + queryUrl;
+            return payUrl + "?" + queryUrl;
         } catch (Exception e) {
             log.error("Error creating VNPay URL", e);
             return "";

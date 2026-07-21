@@ -18,6 +18,8 @@ public class CreateCourseRequest {
 
     private String shortDescription;
 
+    private String thumbnailUrl;
+
     @NotBlank(message = "Course")
     private String level;
 

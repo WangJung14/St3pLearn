@@ -17,11 +17,18 @@ spring:
           predicates:
             - Path=/api/auth/**, /api/users/**, /api/admin/users/**
 
+        # Report moderation belongs to Catalog Service. Keep this specific
+        # route before the broad /api/admin/** route used by Admin Service.
+        - id: catalog-report-route
+          uri: lb://catalog-service
+          predicates:
+            - Path=/api/reports/**, /api/admin/reports, /api/admin/reports/, /api/admin/reports/{reportId}/process
+
         # THÊM MỚI: Luật định tuyến cho Catalog Service
         - id: catalog-service-route
           uri: lb://catalog-service
           predicates:
-            - Path=/api/catalog/**, /api/courses/**, /api/categories/**, /api/wishlists/**
+            - Path=/api/catalog/**, /api/courses/**, /api/categories/**, /api/tags/**, /api/wishlists/**
 
         - id: learning-service-route
           uri: lb://learning-service
@@ -31,7 +38,7 @@ spring:
         - id: payment-service-route
           uri: lb://payment-service
           predicates:
-            - Path=/api/payments/**, /api/transactions/**
+            - Path=/api/payment/**, /api/payments/**, /api/transactions/**
 
         - id: admin-service-route
           uri: lb://admin-service

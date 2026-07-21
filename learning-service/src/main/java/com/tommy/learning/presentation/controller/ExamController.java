@@ -12,6 +12,7 @@ import com.tommy.learning.application.dto.response.ExamAttemptResponse;
 import com.tommy.learning.application.dto.response.ExamResponse;
 import com.tommy.learning.application.dto.response.ExamResultResponse;
 import com.tommy.learning.application.dto.response.StartExamResponse;
+import com.tommy.learning.application.dto.response.StudentExamSummaryResponse;
 import com.tommy.learning.application.service.IExamService;
 import com.tommy.learning.domain.enums.ExamAttemptStatus;
 import jakarta.validation.Valid;
@@ -111,6 +112,16 @@ public class ExamController {
         log.info("Fetching exam {} for instructor {}", examId, instructorId);
         ExamResponse response = examService.getExamById(instructorId, examId);
         return ResponseEntity.ok(ApiResponse.success(200, "Fetched exam successfully", response));
+    }
+
+    @GetMapping("/student/exams")
+    @RequireRole({"STUDENT"})
+    public ResponseEntity<ApiResponse<List<StudentExamSummaryResponse>>> getAvailableExamsForStudent(
+            @RequestHeader("X-User-Id") UUID studentId) {
+
+        log.info("Fetching available exams for student {}", studentId);
+        List<StudentExamSummaryResponse> response = examService.getAvailableExamsForStudent(studentId);
+        return ResponseEntity.ok(ApiResponse.success(200, "Fetched available exams successfully", response));
     }
 
     @PostMapping("/exams/{examId}/attempts")

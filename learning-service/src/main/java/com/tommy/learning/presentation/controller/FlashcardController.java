@@ -31,10 +31,7 @@ public class FlashcardController {
             @PathVariable UUID id,
             Pageable pageable) {
         log.info("Student {} fetching due cards for set {}", studentId, id);
-        // Note: Currently we are getting all due cards across all sets for the student,
-        // to strictly filter by set ID, we would need to join with FlashcardSetCard in the repository.
-        // For simplicity, we just pass studentId for now.
-        Page<DueCardResponse> response = flashcardService.getDueCards(studentId, pageable);
+        Page<DueCardResponse> response = flashcardService.getDueCards(studentId, id, pageable);
         return ResponseEntity.ok(ApiResponse.success(200, "Fetched due cards", response));
     }
 

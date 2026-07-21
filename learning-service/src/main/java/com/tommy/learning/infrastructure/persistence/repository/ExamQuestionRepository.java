@@ -15,4 +15,6 @@ public interface ExamQuestionRepository extends JpaRepository<ExamQuestion, UUID
     void deleteByExamId(UUID examId);
 
     boolean existsByQuestionIdAndExam_Status(UUID questionId, com.tommy.learning.domain.enums.ExamStatus status);
+
+    long countByExamId(UUID examId);
 }

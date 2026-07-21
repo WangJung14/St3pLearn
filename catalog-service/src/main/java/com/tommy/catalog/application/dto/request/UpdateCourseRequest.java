@@ -19,6 +19,8 @@ public class UpdateCourseRequest {
 
     private String shortDescription;
 
+    private String thumbnailUrl;
+
     @NotBlank(message = "Course level cannot be blank")
     private String level;
 

@@ -90,6 +90,7 @@
 - **deleteExam** - `[DELETE] /api/learning/exams/{examId}` - *Role: INSTRUCTOR, TEACHER*
 - **getExamsByInstructor** - `[GET] /api/learning/exams` - *Role: INSTRUCTOR, TEACHER*
 - **getExamById** - `[GET] /api/learning/exams/{examId}` - *Role: INSTRUCTOR, TEACHER*
+- **getAvailableExamsForStudent** - `[GET] /api/learning/student/exams` - *Role: STUDENT*
 - **startExam** - `[POST] /api/learning/exams/{examId}/attempts` - *Role: INSTRUCTOR, TEACHER*
 - **submitExam** - `[POST] /api/learning/exams/attempts/{attemptId}/submit` - *Role: STUDENT*
 - **getExamSubmissions** - `[GET] /api/learning/exams/{examId}/submissions` - *Role: STUDENT*
@@ -99,6 +100,9 @@
 - **reviewFlashcard** - `[POST] /api/learning/flashcards/{id}/review` - *Role: STUDENT*
 - **getDashboardHistory** - `[GET] /api/learning/dashboard/history` - *Role: STUDENT*
 - **createFlashcardSet** - `[POST] /api/learning/flashcard-sets` - *Public API / Authenticated*
+- **getMyFlashcardSets** - `[GET] /api/learning/flashcard-sets/my-sets` - *Role: INSTRUCTOR, TEACHER*
+- **getAvailableFlashcardSets** - `[GET] /api/learning/flashcard-sets/available` - *Role: STUDENT*
+- **addCardToFlashcardSet** - `[POST] /api/learning/flashcard-sets/{id}/cards` - *Role: INSTRUCTOR, TEACHER*
 - **cloneFlashcardSet** - `[POST] /api/learning/flashcard-sets/{id}/clone` - *Role: INSTRUCTOR, TEACHER*
 - **startLearning** - `[POST] /api/learning/courses/{courseId}/start` - *Public API / Authenticated*
 - **trackProgress** - `[POST] /api/learning/courses/{courseId}/lessons/{lessonId}/progress` - *Role: STUDENT, INSTRUCTOR, ADMIN*
@@ -119,10 +123,11 @@
 
 - **createCoupon** - `[POST] /api/payment/coupons` - *Public API / Authenticated*
 - **calculateDiscount** - `[POST] /api/payment/coupons/calculate` - *Role: ADMIN, INSTRUCTOR*
-- **checkout** - `[POST] /api/payment/orders/checkout` - *Public API / Authenticated*
-- **vnpayCallback** - `[GET] /api/payment/vnpay/callback` - *Public API / Authenticated*
-- **requestRefund** - `[POST] /api/payment/refunds` - *Public API / Authenticated*
-- **approveRefund** - `[POST] /api/payment/refunds/{id}/approve` - *Role: STUDENT*
+- **getMyOrders** - `[GET] /api/payment/orders` - *Role: STUDENT*
+- **checkout** - `[POST] /api/payment/orders/checkout` - *Role: STUDENT*
+- **vnpayCallback** - `[GET] /api/payment/vnpay/callback` - *Public API*
+- **requestRefund** - `[POST] /api/payment/refunds` - *Role: STUDENT*
+- **approveRefund** - `[POST] /api/payment/refunds/{id}/approve` - *Role: ADMIN*
 
 
 ## Admin Service

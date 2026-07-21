@@ -65,6 +65,7 @@ public class CourseService implements ICourseService {
                 .title(request.getTitle())
                 .slug(uniqueSlug)
                 .shortDescription(request.getShortDescription())
+                .thumbnailUrl(request.getThumbnailUrl())
                 .level(request.getLevel())
                 .language(request.getLanguage())
                 .price(request.getPrice())
@@ -98,7 +99,10 @@ public class CourseService implements ICourseService {
         // 3. Update data
         course.setTitle(request.getTitle());
         course.setShortDescription(request.getShortDescription());
+        course.setThumbnailUrl(request.getThumbnailUrl());
         course.setLevel(request.getLevel());
+        course.setLanguage(request.getLanguage());
+        course.setPrice(request.getPrice());
         course.setLanguage(request.getLanguage());
         course.setPrice(request.getPrice());
 

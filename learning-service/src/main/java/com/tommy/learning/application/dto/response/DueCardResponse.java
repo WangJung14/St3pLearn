@@ -14,4 +14,5 @@ public class DueCardResponse {
     private String lemma;
     private String phonetic;
     private String partOfSpeech;
+    private String definition;
 }

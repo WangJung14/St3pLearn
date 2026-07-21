@@ -36,6 +36,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             "/api/auth/verify-email",
             "/api/catalog/p/",
             "/api/courses/p/",
+            "/api/payment/vnpay/callback",
             "/api/courses/bulk-summaries" // API xem profile công khai
     );
 
@@ -50,7 +51,12 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         }
 
         // 2.Public gateway
-        boolean isPublic = publicEndpoints.stream().anyMatch(path::startsWith);
+        boolean isPublicCatalogRead = HttpMethod.GET.equals(method)
+                && (path.equals("/api/categories")
+                    || path.equals("/api/categories/")
+                    || path.equals("/api/tags")
+                    || path.equals("/api/tags/"));
+        boolean isPublic = publicEndpoints.stream().anyMatch(path::startsWith) || isPublicCatalogRead;
         if (isPublic) {
             return chain.filter(exchange);
         }

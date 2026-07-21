@@ -5,6 +5,7 @@ import com.tommy.common.exception.ErrorCode;
 import com.tommy.payment.application.dto.request.ApplyCouponRequest;
 import com.tommy.payment.application.dto.request.CheckoutRequest;
 import com.tommy.payment.application.dto.response.CheckoutResponse;
+import com.tommy.payment.application.dto.response.PaymentOrderResponse;
 import com.tommy.payment.domain.entity.PaymentOrder;
 import com.tommy.payment.domain.entity.PaymentTransaction;
 import com.tommy.payment.domain.entity.PaymentOutboxEvent;
@@ -14,10 +15,15 @@ import com.tommy.payment.domain.enums.TransactionStatus;
 import com.tommy.payment.infrastructure.persistence.repository.PaymentOrderRepository;
 import com.tommy.payment.infrastructure.persistence.repository.PaymentOutboxEventRepository;
 import com.tommy.payment.infrastructure.persistence.repository.PaymentTransactionRepository;
+import com.tommy.payment.infrastructure.client.CatalogClient;
+import com.tommy.payment.infrastructure.client.dto.CatalogCourseResponse;
+import com.tommy.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -32,19 +38,27 @@ public class OrderService {
     private final PaymentOutboxEventRepository outboxEventRepository;
     private final CouponService couponService;
     private final VNPayService vnPayService;
+    private final CatalogClient catalogClient;
 
     @Transactional
     public CheckoutResponse checkout(UUID studentId, CheckoutRequest request, String ipAddress) {
-        BigDecimal finalAmount = request.getOriginalAmount();
+        ApiResponse<CatalogCourseResponse> catalogResponse = catalogClient.getCourse(request.getCourseId());
+        CatalogCourseResponse course = catalogResponse != null ? catalogResponse.getData() : null;
+        if (course == null || course.getPrice() == null || !"PUBLISHED".equals(course.getStatus())) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION); // COURSE_NOT_AVAILABLE_FOR_PURCHASE
+        }
+
+        BigDecimal originalAmount = course.getPrice();
+        BigDecimal finalAmount = originalAmount;
         BigDecimal discountAmount = BigDecimal.ZERO;
 
         if (request.getCouponCode() != null && !request.getCouponCode().isEmpty()) {
             ApplyCouponRequest applyReq = new ApplyCouponRequest();
             applyReq.setCourseId(request.getCourseId());
             applyReq.setCode(request.getCouponCode());
-            applyReq.setOriginalAmount(request.getOriginalAmount());
+            applyReq.setOriginalAmount(originalAmount);
             discountAmount = couponService.calculateDiscount(studentId, applyReq);
-            finalAmount = request.getOriginalAmount().subtract(discountAmount);
+            finalAmount = originalAmount.subtract(discountAmount);
         }
 
         String orderNumber = "ORD-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 4);
@@ -53,7 +67,7 @@ public class OrderService {
                 .studentId(studentId)
                 .courseId(request.getCourseId())
                 .orderNumber(orderNumber)
-                .originalAmount(request.getOriginalAmount())
+                .originalAmount(originalAmount)
                 .discountAmount(discountAmount)
                 .finalAmount(finalAmount)
                 .currency("VND")
@@ -70,8 +84,13 @@ public class OrderService {
             createPaymentSuccessEvent(order);
             
             return CheckoutResponse.builder()
+                    .orderId(order.getId())
                     .orderNumber(orderNumber)
                     .paymentUrl(null)
+                    .status(order.getStatus().name())
+                    .originalAmount(order.getOriginalAmount())
+                    .discountAmount(order.getDiscountAmount())
+                    .finalAmount(order.getFinalAmount())
                     .build();
         }
 
@@ -94,9 +113,39 @@ public class OrderService {
         );
 
         return CheckoutResponse.builder()
+                .orderId(order.getId())
                 .orderNumber(orderNumber)
                 .paymentUrl(paymentUrl)
+                .status(order.getStatus().name())
+                .originalAmount(order.getOriginalAmount())
+                .discountAmount(order.getDiscountAmount())
+                .finalAmount(order.getFinalAmount())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PaymentOrderResponse> getStudentOrders(UUID studentId, Pageable pageable) {
+        return orderRepository.findByStudentIdOrderByCreatedAtDesc(studentId, pageable)
+                .map(order -> {
+                    PaymentTransaction transaction = transactionRepository
+                            .findFirstByPaymentOrderIdOrderByCreatedAtDesc(order.getId())
+                            .orElse(null);
+
+                    return PaymentOrderResponse.builder()
+                            .id(order.getId())
+                            .courseId(order.getCourseId())
+                            .orderNumber(order.getOrderNumber())
+                            .originalAmount(order.getOriginalAmount())
+                            .discountAmount(order.getDiscountAmount())
+                            .finalAmount(order.getFinalAmount())
+                            .currency(order.getCurrency())
+                            .status(order.getStatus().name())
+                            .gateway(transaction != null ? transaction.getGateway() : null)
+                            .transactionStatus(transaction != null ? transaction.getStatus().name() : null)
+                            .createdAt(order.getCreatedAt())
+                            .completedAt(transaction != null ? transaction.getCompletedAt() : null)
+                            .build();
+                });
     }
 
     private void createPaymentSuccessEvent(PaymentOrder order) {

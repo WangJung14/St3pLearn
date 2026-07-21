@@ -17,6 +17,7 @@ import com.tommy.learning.application.dto.response.QuestionResponse;
 import com.tommy.learning.application.dto.response.StartExamResponse;
 import com.tommy.learning.application.dto.response.StudentExamQuestionResultResponse;
 import com.tommy.learning.application.dto.response.StudentQuestionResponse;
+import com.tommy.learning.application.dto.response.StudentExamSummaryResponse;
 import com.tommy.learning.application.service.IExamService;
 import com.tommy.learning.infrastructure.client.IdentityClient;
 import com.tommy.learning.infrastructure.client.dto.IdentityUserDetailResponse;
@@ -154,6 +155,32 @@ public class ExamService implements IExamService {
     public ExamResponse getExamById(UUID instructorId, UUID examId) {
         Exam exam = getExamAndVerifyOwnership(examId, instructorId);
         return mapToResponse(exam);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<StudentExamSummaryResponse> getAvailableExamsForStudent(UUID studentId) {
+        return examRepository.findAvailableForStudent(studentId, ExamStatus.PUBLISHED)
+                .stream()
+                .map(exam -> {
+                    long attemptsUsed = examAttemptRepository.countByStudentIdAndExamId(studentId, exam.getId());
+                    int maxAttempts = exam.getMaxAttempts() == null ? 1 : exam.getMaxAttempts();
+                    long remainingAttempts = Math.max(0, maxAttempts - attemptsUsed);
+                    return StudentExamSummaryResponse.builder()
+                            .id(exam.getId())
+                            .courseId(exam.getCourseId())
+                            .title(exam.getTitle())
+                            .durationMinutes(exam.getDurationMinutes())
+                            .passingScore(exam.getPassingScore())
+                            .maxAttempts(maxAttempts)
+                            .attemptsUsed(attemptsUsed)
+                            .remainingAttempts(remainingAttempts)
+                            .questionCount(examQuestionRepository.countByExamId(exam.getId()))
+                            .passed(examAttemptRepository.existsByStudentIdAndExamIdAndPassedTrue(studentId, exam.getId()))
+                            .canStart(remainingAttempts > 0)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     @Override

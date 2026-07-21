@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 public interface IFlashcardService {
-    Page<DueCardResponse> getDueCards(UUID studentId, Pageable pageable);
+    Page<DueCardResponse> getDueCards(UUID studentId, UUID setId, Pageable pageable);
     void reviewCard(UUID studentId, UUID flashcardId, ReviewFlashcardRequest request);
     FlashcardHistorySummaryResponse getDashboardHistory(UUID studentId);
 }
