@@ -25,6 +25,9 @@ public interface CourseRepository extends JpaRepository<Course, UUID> , JpaSpeci
     // Find course by slug and status
     Optional<Course> findBySlugAndStatus(String slug, CourseStatus status);
 
+    // Find course by slug
+    Optional<Course> findBySlug(String slug);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM Course c WHERE c.id = :id")
     Optional<Course> findByIdForUpdate(@Param("id") UUID id);

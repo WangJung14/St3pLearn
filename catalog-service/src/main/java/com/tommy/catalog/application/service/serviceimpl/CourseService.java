@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -540,16 +541,29 @@ public class CourseService implements ICourseService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "courseDetail", key = "#slug")
-    public CourseDetailPublicResponse getPublicCourseDetail(String slug) {
-        // 1. Find course by slug , just get PUBLISH COURSE
-        Course course = courseRepository.findBySlugAndStatus(slug, CourseStatus.PUBLISHED)
+    public CourseDetailPublicResponse getPublicCourseDetail(String slug, String userRole, UUID userId) {
+        // 1. Find course by slug
+        Course course = courseRepository.findBySlug(slug)
                 .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
 
-        // 2. Get all chapter of course
+        // 2. Check access permissions
+        boolean canView = false;
+        if (CourseStatus.PUBLISHED.equals(course.getStatus())) {
+            canView = true;
+        } else if ("ADMIN".equals(userRole)) {
+            canView = true;
+        } else if ("TEACHER".equals(userRole) && course.getInstructorId().equals(userId)) {
+            canView = true;
+        }
+
+        if (!canView) {
+            throw new AppException(ErrorCode.COURSE_NOT_FOUND);
+        }
+
+        // 3. Get all chapter of course
         List<CourseChapter> chapters = courseChapterRepository.findByCourseIdOrderByDisplayOrderAsc(course.getId());
 
-        // 3. Create list of chapter DTOs
+        // 4. Create list of chapter DTOs
         List<ChapterPublicDto> chapterDtos = chapters.stream().map(chapter -> {
 
             // Get all lesson of this chapter
@@ -564,15 +578,20 @@ public class CourseService implements ICourseService {
                         .duration(lesson.getDurationSeconds())
                         .isPreview(lesson.getIsPreview())
                         .build();
-                if(lesson.getIsPreview()){
+
+                boolean shouldShowContent = lesson.getIsPreview() 
+                        || "ADMIN".equals(userRole) 
+                        || ("TEACHER".equals(userRole) && course.getInstructorId().equals(userId));
+
+                if (shouldShowContent) {
                     if (lesson.getContent() != null) {
                         dto.setVideoUrl(lesson.getContent().getStorageUrl());
                     }
-                }else{
+                } else {
                     dto.setVideoUrl(null);
                 }
                 return dto;
-        }).toList();
+        }).collect(Collectors.toList());
             return ChapterPublicDto.builder()
                     .id(chapter.getId())
                     .title(chapter.getTitle())

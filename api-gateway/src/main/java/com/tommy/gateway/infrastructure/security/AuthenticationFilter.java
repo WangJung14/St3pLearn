@@ -50,15 +50,16 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
 
-        // 2.Public gateway
         boolean isPublic = publicEndpoints.stream().anyMatch(path::startsWith);
-        if (isPublic) {
+        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+
+        // If public endpoint AND no token provided, allow through immediately
+        if (isPublic && (authHeader == null || !authHeader.startsWith("Bearer "))) {
             return chain.filter(exchange);
         }
 
-        // 3. Get Token from Header Authorization
-        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        // If not public AND no token provided, return 401
+        if (!isPublic && (authHeader == null || !authHeader.startsWith("Bearer "))) {
             return unauthenticated(exchange);
         }
 
@@ -88,6 +89,9 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
         } catch (Exception e) {
             log.error("JWT Validation failed: {}", e.getMessage());
+            if (isPublic) {
+                return chain.filter(exchange);
+            }
             return unauthenticated(exchange);
         }
     }
