@@ -38,6 +38,11 @@ spring:
           predicates:
             - Path=/api/admin/**
 
+        - id: ai-service-route
+          uri: http://127.0.0.1:7777
+          predicates:
+            - Path=/api/ai/**
+
 eureka:
   client:
     service-url:
