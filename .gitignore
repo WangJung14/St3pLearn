@@ -75,3 +75,7 @@ desktop.ini
 
 # Docs
 docs/Query/Identity_Query.sql
+
+
+ai-service/
+/uploads/
