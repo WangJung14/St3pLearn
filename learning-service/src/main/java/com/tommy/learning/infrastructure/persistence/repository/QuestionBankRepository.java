@@ -14,4 +14,6 @@ public interface QuestionBankRepository extends JpaRepository<QuestionBank, UUID
     Optional<QuestionBank> findByIdAndIsDeletedFalse(UUID id);
 
     List<QuestionBank> findByInstructorIdAndIsDeletedFalse(UUID instructorId);
+
+    List<QuestionBank> findByCourseIdAndIsDeletedFalse(UUID courseId);
 }

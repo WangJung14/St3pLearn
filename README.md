@@ -21,11 +21,13 @@ graph TD
     Gateway --> LearningService[Learning Service - Port 8083]
     Gateway --> PaymentService[Payment Service - Port 8084]
     Gateway --> NotificationService[Notification Service - Port 8085]
+    Client -. WebSocket .-> AiService[AI Service FastAPI - Port 7777]
 
     IdentityService --> DB1[(Identity DB)]
     CatalogService --> DB2[(Catalog DB)]
     LearningService --> DB3[(Learning DB)]
     PaymentService --> DB4[(Payment DB)]
+    AiService -. HTTP POST .-> Gateway
     
     PaymentService -. RabbitMQ .-> LearningService
 ```
@@ -37,9 +39,10 @@ graph TD
 | **`api-gateway`** | `8080` | Cổng API tập trung, điều hướng Request, xác thực Header & Rate Limiting. |
 | **`identity-service`** | `8081` | Đăng ký, Đăng nhập, Tạo JWT Token, Phân quyền RBAC (`STUDENT`, `TEACHER`, `ADMIN`), Quản lý Hồ sơ người dùng. |
 | **`catalog-service`** | `8082` | Quản lý Khóa học, Chương học, Bài học, Upload tệp PDF/Video trực tiếp lên Server, Quản lý Danh mục & Thẻ Tag. |
-| **`learning-service`** | `8083` | Quản lý Ghi danh (Enrollments), Tiến độ học tập, Hệ thống Flashcard Từ vựng Spaced-Repetition, Bài thi Trắc nghiệm & Cấp Chứng chỉ. |
+| ****`learning-service`** | `8083` | Quản lý Ghi danh (Enrollments), Tiến độ học tập, Hệ thống Flashcard Từ vựng Spaced-Repetition, Bài thi Trắc nghiệm & Cấp Chứng chỉ. |
 | **`payment-service`** | `8084` | Tích hợp Cổng thanh toán VNPay, Đơn hàng Checkout, Mã giảm giá Coupon, Xử lý Yêu cầu Hoàn tiền. |
 | **`notification-service`**| `8085` | Nhận Event qua RabbitMQ, phát thông báo thời gian thực & tạo báo cáo vi phạm. |
+| **`ai-service`** | `7777` | Dịch vụ AI (FastAPI) đàm thoại tiếng Anh qua WebSocket, sinh giọng nói AI (Edge TTS), tạo gợi ý đối đáp (Hint) và phân tích sửa lỗi sai ngữ pháp qua local LLM (Ollama). |
 
 ---
 
@@ -79,25 +82,27 @@ mvn clean package -DskipTests
 
 ### 4. Chạy các Microservices
 Lần lượt khởi chạy các Service theo thứ tự đề xuất:
-1. `identity-service`
-2. `catalog-service`
-3. `learning-service`
-4. `payment-service`
-5. `api-gateway`
+1. `identity-service` (Port 8081)
+2. `catalog-service` (Port 8082)
+3. `learning-service` (Port 8083)
+4. `payment-service` (Port 8084)
+5. `api-gateway` (Port 8080)
+6. `ai-service` (Port 7777 - Dịch vụ Python FastAPI, xem hướng dẫn chạy chi tiết trong [ai-service/README.md](file:///d:/DATT_CNPM/BE/st3p-learn/ai-service/README.md))
 
-Hoặc chạy trực tiếp file `.jar` từng service:
+Hoặc chạy trực tiếp file `.jar` từng service Spring Boot:
 ```bash
 java -jar api-gateway/target/api-gateway-0.0.1-SNAPSHOT.jar
 ```
 
 ---
 
-## 🔌 API Gateway Endpoints chính
+## 🔌 API Gateway & AI Service Endpoints chính
 
 * **Xác thực & Người dùng:** `http://localhost:8080/api/auth/*`, `http://localhost:8080/api/users/*`
 * **Khóa học & Bài học:** `http://localhost:8080/api/courses/*`
 * **Bài thi & Từ vựng:** `http://localhost:8080/api/learning/*`, `http://localhost:8080/api/learning/student/exams`
 * **Thanh toán & Hoàn tiền:** `http://localhost:8080/api/payment/*`
+* **Phòng nói chuyện AI (WebSocket):** `ws://localhost:7777/api/ai/speaking/ws`
 
 ---
 
